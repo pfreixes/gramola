@@ -48,6 +48,6 @@ Developing
 ----------
 
 .. _Grafana: http://grafana.org/
-.. _sparlines: https://en.wikipedia.org/wiki/Sparkline
+.. _sparklines: https://en.wikipedia.org/wiki/Sparkline
 
 
