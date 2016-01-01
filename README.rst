@@ -1,6 +1,8 @@
 Gramola
 =======
 
+**STILL IN DEVELOPING, comming soon.**
+
 Gramola is a console port of Grafana_ that uses sparklines_ to render time series data points. Because sometimes we need
 a quick view of one metric for debuging propouses, or just because the numbers doesn't matter and our concern is about
 how the metric behaves, Gramola gives us a easy, fast and polyglot data source implementation to make it.
