@@ -47,7 +47,7 @@ To get more info about Gramola and how its features can be used read the full do
 Developing
 ----------
 
-.. Grafana_: http://grafana.org/
-.. sparlines_: https://en.wikipedia.org/wiki/Sparkline
+.. _Grafana: http://grafana.org/
+.. _sparlines: https://en.wikipedia.org/wiki/Sparkline
 
 
