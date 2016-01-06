@@ -29,6 +29,10 @@ class TestGramolaDictionary(object):
 
         ChildConfig.loads(json.dumps({'name': 'hellow', 'foo': 1, 'bar': 2}))
 
+        # check the __eq__ method
+        conf2 = ChildConfig(**{'name': 'hellow', 'foo': 1, 'bar': 2})
+        assert conf == conf2
+
     def test_allowed_keys(self):
         class TestConfig(GramolaDictionary):
             REQUIRED_KEYS = ('foo',)

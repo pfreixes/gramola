@@ -99,6 +99,11 @@ class GramolaDictionary(object):
 
         self._dict = kwargs
 
+    def __eq__(self, b):
+        # Are equals if they are implemented using the same class and
+        # have the same dictionary elements
+        return self.__class__ == b.__class__ and self._dict == b._dict
+
     def dict(self):
         """ Returns a copy dict of the internal dict"""
         return dict(**self._dict)
