@@ -7,8 +7,8 @@ from mock import patch, Mock
 
 from gramola.commands import (
     GramolaCommand,
-    DataSourceEchoCommand,
-    QueryCommand
+    build_datasource_echo_type,
+    build_datasource_query_type
 )
 
 from gramola.datasources.base import (
@@ -43,15 +43,19 @@ class TestGramolaCommand(object):
         with pytest.raises(KeyError):
             GramolaCommand.find('foo')
 
+        assert TestCommand in GramolaCommand.commands() 
+
 class TestDataSourceEcho(object):
     def test_execute(self, test_data_source):
-        d = {'type': 'test', 'foo': 1, 'bar': 1}
+        command = build_datasource_echo_type(test_data_source)
 
-        # otupus returns a hardcoded name
+        d = {'foo': 1, 'bar': 1}
+
+        # otupus returns a hardcoded name and the type
         output = copy(d)
-        output.update(name='stdout')
+        output.update(**{'name': 'stdout', 'type': 'test'})
 
-        assert loads(DataSourceEchoCommand.execute(
+        assert loads(command.execute(
             **d)) == output
 
 
@@ -64,7 +68,8 @@ class TestQueryCommand(object):
 
         test_data_source.datapoints.return_value = [(1, 0), (2, 1), (3, 1)]
 
-        assert QueryCommand.execute("-", metric='foo', since='-1d', until='now') ==\
+        command = build_datasource_query_type(test_data_source)
+        assert command.execute("-", metric='foo', since='-1d', until='now') ==\
             sparkline.sparkify([1, 2, 3])
 
         test_data_source.datapoints.assert_call_with(

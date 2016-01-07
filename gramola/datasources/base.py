@@ -106,6 +106,11 @@ class DataSource(object):
         except StopIteration:
             raise KeyError(type_)
 
+    @classmethod
+    def implementations(cls):
+        """Returns all implementations."""
+        return cls.__subclasses__()
+
     def __init__(self, configuration):
         """
         Initialize a data source using a configuration. Configuration is, if it
