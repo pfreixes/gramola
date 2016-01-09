@@ -68,10 +68,7 @@ class TestDataSourceEcho(object):
             command.execute(1)
 
 
-
-
 class TestQueryCommand(object):
-
     @patch("gramola.commands.sys")
     def test_execute_stdin(self, sys_patched, test_data_source):
         buffer_ = dumps({'type': 'test', 'name': 'stdout', 'foo': 1, 'bar': 1})
@@ -81,9 +78,20 @@ class TestQueryCommand(object):
 
         command = build_datasource_query_type(test_data_source)
         with patch("__builtin__.print") as print_patched:
-            command.execute("-", metric='foo', since='-1d', until='now')
+            command.execute("-", "foo", "-1d", "now")
             print_patched.assert_called_with(sparkline.sparkify([1, 2, 3]))
 
         test_data_source.datapoints.assert_call_with(
             test_data_source.METRIC_QUERY_CLS(metric='foo', since='-1d', until='now')
         )
+
+    @patch("gramola.commands.sys")
+    def test_invalid_params(self, sys_patched, test_data_source):
+        # query test_data_source takes four required params 
+        buffer_ = dumps({'type': 'test', 'name': 'stdout', 'foo': 1, 'bar': 1})
+        sys_patched.stdin.read.return_value = buffer_
+        command = build_datasource_echo_type(test_data_source)
+        with pytest.raises(InvalidParams):
+            command.execute("-")
+
+

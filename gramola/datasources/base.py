@@ -164,7 +164,7 @@ class DataSource(object):
 
         :param configuration: Query
         :type configuration: `MetricQuery` or a derivated one
-        :rtype: list.
+        :rtype: list, or None when where datapoints were not found.
         """
         raise NotImplemented()
 

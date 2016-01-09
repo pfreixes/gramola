@@ -38,10 +38,12 @@ from gramola.datasources.base import (
     InvalidDataSourceConfig
 )
 
+
 class InvalidParams(Exception):
     def __init__(self, error_params):
         self.error_params = error_params
         Exception.__init__(self)
+
 
 class GramolaCommand(object):
     # to be overriden by commands implementations
@@ -201,12 +203,10 @@ def build_datasource_echo_type(datasource):
             }
 
             datasource_params.update(
-                {k:v for v, k in
+                {k: v for v, k in
                     zip(datasource_args,
                         filter(lambda k: k not in ['name', 'type'],
-                            datasource.DATA_SOURCE_CONFIGURATION_CLS.required_keys())
-                       )
-                }
+                               datasource.DATA_SOURCE_CONFIGURATION_CLS.required_keys()))}
             )
 
             try:
@@ -218,10 +218,10 @@ def build_datasource_echo_type(datasource):
         @staticmethod
         def options():
             return [(None, "--{}".format(key), key) for key in
-                datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()]
+                    datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()]
 
     return DataSourceEchoCommand
-   
+
 
 class DataSourceListCommand(GramolaCommand):
     NAME = 'datasource-list'
@@ -248,33 +248,55 @@ def build_datasource_query_type(datasource):
     class QueryCommand(GramolaCommand):
         NAME = 'query-{}'.format(datasource.TYPE)
         DESCRIPTION = 'Query for a specific metric.'
-        USAGE = '%prog {}'.format(" ".join([s.upper() for s in datasource.DATA_SOURCE_CONFIGURATION_CLS.required_keys()]))
+        USAGE = '%prog {}'.format(" ".join(
+            ['DATASOURCE_NAME'] +
+            [s.upper() for s in datasource.METRIC_QUERY_CLS.required_keys()]))
 
         @staticmethod
-        def execute(name, store=None, **query_params):
+        def execute(datasource_name, *query_args, **kwargs):
             """ Runs a query using a datasource and print it as a char graphic
 
-            :param name: Name of the datasource used, the datasource will be get from
-                         the user store. Altought special char `-` can be used as alternative
-                         to read the datasource config from the stdin.
-            :param store: Alternatvie :cls:`gramola.store.Store` to the default Gramola directory store.
+            :param datasource_name: Name of the datasource used, the datasource will be get from
+                                    the user store. Altought special char `-` can be used as
+                                    alternative to read the datasource config from the stdin.
+            :param query_args: Arguments given as metrics query, specific for each metric query.
             :raises InvalidDataSourceConfig: Data source config is invalid.
             :raises InvalidMetricQuery: Query params are invalid.
-            :raises KeyError: If the given datasource name does not exist.
             :raises ValueError: If the given datasource from stdin is not well formatted.
             """
-            if name == '-':
+            if datasource_name == '-':
                 buffer_ = sys.stdin.read()
                 config = loads(buffer_)
             else:
+                user_store = store or DefaultStore()
                 try:
-                    config = filter(lambda d: d['name'] == name, user_store.datasources())[0]
+                    config = filter(lambda d: d['name'] == datasource_name,
+                                    user_store.datasources())[0]
                 except IndexError:
-                    raise KeyError(name)
+                    print("Datasource {} not found".format(datasource_name), file=sys.stderr)
+                    return
 
-            query = datasource.METRIC_QUERY_CLS(**query_params)
-            datapoints = datasource.from_config(**config).datapoints(query)
-            print(sparkline.sparkify([value for value, ts in datapoints]))
+            query_params = {
+                k: v for v, k in zip(query_args,
+                                     datasource.METRIC_QUERY_CLS.required_keys())
+            }
+
+            try:
+                query = datasource.METRIC_QUERY_CLS(**query_params)
+            except InvalidMetricQuery, e:
+                raise InvalidParams(e.errors)
+
+            try:
+                datapoints = datasource.from_config(**config).datapoints(query)
+                if datapoints:
+                    print(sparkline.sparkify([value for value, ts in datapoints]))
+            except InvalidDataSourceConfig, e:
+                print("Datasource config invalid {}".format(e.errors), file=sys.stderr)
+
+        @staticmethod
+        def options():
+            return [(None, "--{}".format(key), key) for key in
+                    datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()]
 
     return QueryCommand
 
@@ -287,17 +309,17 @@ def gramola():
         $ gramola <global options> <subcommand> <subcommand options> <args ..>
     """
     # Build as many datasource-echo commands as many types of datasources there are.
-    typed_commands = [build_datasource_echo_type(datasource)\
-        for datasource in DataSource.implementations()]
- 
+    typed_commands = [build_datasource_echo_type(datasource)
+                      for datasource in DataSource.implementations()]
+
     # Build as many query commands as many types of datasources there are.
-    query_commands = [build_datasource_query_type(datasource)\
-        for datasource in DataSource.implementations()]
+    query_commands = [build_datasource_query_type(datasource)
+                      for datasource in DataSource.implementations()]
 
     # Use the gramola.contrib.subcommands implementation to wraper the
     # GramolaCommands as a subcommands availables from the main command.
     subcommands = []
-    for gramola_subcommand in  GramolaCommand.commands():
+    for gramola_subcommand in GramolaCommand.commands():
         cmd = Subcommand(gramola_subcommand.NAME,
                          optparse.OptionParser(usage=gramola_subcommand.USAGE),
                          gramola_subcommand.DESCRIPTION)
@@ -305,7 +327,7 @@ def gramola():
             cmd.parser.add_option(opt)
 
         subcommands.append(cmd)
-    
+
     parser = SubcommandsOptionParser(subcommands=subcommands)
     parser.add_option('-s', '--store', dest='store',
                       help='alternative store directory, default ~/.gramola')

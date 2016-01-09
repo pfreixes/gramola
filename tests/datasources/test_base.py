@@ -52,9 +52,9 @@ class TestDataSource(object):
 
     def test_find(self):
         class TestDataSource(DataSource):
-            TYPE = 'test'
+            TYPE = 'test_find'
 
-        assert DataSource.find('test') == TestDataSource
+        assert DataSource.find('test_find') == TestDataSource
 
         with pytest.raises(KeyError):
             DataSource.find('foo')

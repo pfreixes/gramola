@@ -33,11 +33,12 @@ class GraphiteDataSource(DataSource):
         try:
             response = requests.get(url, params=params)
         except RequestException, e:
-            log.warning('Failed {}?{} request. With error {}'.format(url, params, e))
+            log.warning("Something was wrong with Graphite service")
+            log.debug(e)
             return None
 
         if response.status_code != 200:
-            log.warning('Failed {}?{} request. With error {}'.format(url, params, response.status_code))
+            log.warning("Get a invalid {} HTTP code from Grahpite service".format(response.status_code))
             return None
 
         return response.json()
@@ -91,8 +92,12 @@ class GraphiteDataSource(DataSource):
             log.warning('Multiple metrics found, geting only the first one')
 
         # Graphite returns a list of lists, we turn it into a list of tuples to
-        # make it compatible with the datapoints return type
-        return [(col[0], col[1]) for col in response[0]["datapoints"]]
+        # make it compatible with the datapoints return type.
+
+        # FIXME: Gramola not supports None values because of sparklines has not
+        # support. For now, unitil it will be fixed we change None values from None
+        # to 0.
+        return [(col[0] or 0, col[1]) for col in response[0]["datapoints"] if col[0]]
  
 
     def test(self):
