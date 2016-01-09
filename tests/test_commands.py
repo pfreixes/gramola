@@ -6,6 +6,7 @@ from json import loads, dumps
 from mock import patch, Mock
 
 from gramola.commands import (
+    InvalidParams,
     GramolaCommand,
     build_datasource_echo_type,
     build_datasource_query_type
@@ -47,16 +48,26 @@ class TestGramolaCommand(object):
 
 class TestDataSourceEcho(object):
     def test_execute(self, test_data_source):
+        # otupus returns a hardcoded name and the type of the
+        # datasource along with the expected keys of datasource
+        output = {
+            'type': 'test',
+            'name': 'stdout',
+            'bar': 2,
+            'foo': 1,
+        }
         command = build_datasource_echo_type(test_data_source)
+        with patch("__builtin__.print") as print_patched:
+            command.execute(1, 2)
+            print_patched.assert_called_with(dumps(output))
 
-        d = {'foo': 1, 'bar': 1}
+    def test_invalid_params(self, test_data_source):
+        # test_data_source takes two params
+        command = build_datasource_echo_type(test_data_source)
+        with pytest.raises(InvalidParams):
+            command.execute(1)
 
-        # otupus returns a hardcoded name and the type
-        output = copy(d)
-        output.update(**{'name': 'stdout', 'type': 'test'})
 
-        assert loads(command.execute(
-            **d)) == output
 
 
 class TestQueryCommand(object):
@@ -69,8 +80,9 @@ class TestQueryCommand(object):
         test_data_source.datapoints.return_value = [(1, 0), (2, 1), (3, 1)]
 
         command = build_datasource_query_type(test_data_source)
-        assert command.execute("-", metric='foo', since='-1d', until='now') ==\
-            sparkline.sparkify([1, 2, 3])
+        with patch("__builtin__.print") as print_patched:
+            command.execute("-", metric='foo', since='-1d', until='now')
+            print_patched.assert_called_with(sparkline.sparkify([1, 2, 3]))
 
         test_data_source.datapoints.assert_call_with(
             test_data_source.METRIC_QUERY_CLS(metric='foo', since='-1d', until='now')
