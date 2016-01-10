@@ -70,7 +70,7 @@ class GramolaDictionary(object):
             for attr in chain(cls.required_keys(), cls.optional_keys()):
                 setattr(
                     cls, 
-                    attr,
+                    str(attr),  # required for non string objects
                     property(lambda self, a=attr: self._dict.get(a, None))
                 )
 

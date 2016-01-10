@@ -57,6 +57,8 @@ class GramolaCommand(object):
 
     @staticmethod
     def options():
+        """List of option args and kwargs to be used as a params for the
+        parser.add_option function."""
         return []
 
     @classmethod
@@ -181,12 +183,13 @@ def build_datasource_echo_type(datasource):
                 s not in ['name', 'type']]))
 
         @staticmethod
-        def execute(*datasource_args, **kwargs):
+        def execute(options, *datasource_args):
             """ Echo a datasource configuration to be used by query command, the arguments
             depend on the kind of datasource.
 
+            :param options: Options given along with the command arguments. Use it to find out
+                            specific options for the data source.
             :param datasource_args: Values of the required keys for the datasource.
-            :param options: Command options given by the caller.
             :return: A valid payload to be used as stdin of the query-<type> command.
             :raises InvalidParams: If datasource_args are not completed.
             """
@@ -253,9 +256,11 @@ def build_datasource_query_type(datasource):
             [s.upper() for s in datasource.METRIC_QUERY_CLS.required_keys()]))
 
         @staticmethod
-        def execute(datasource_name, *query_args, **kwargs):
+        def execute(options, datasource_name, *query_args):
             """ Runs a query using a datasource and print it as a char graphic
 
+            :param options: Options given along with the command arguments. Use it to find out
+                            specific options for the query args.
             :param datasource_name: Name of the datasource used, the datasource will be get from
                                     the user store. Altought special char `-` can be used as
                                     alternative to read the datasource config from the stdin.
@@ -281,6 +286,11 @@ def build_datasource_query_type(datasource):
                                      datasource.METRIC_QUERY_CLS.required_keys())
             }
 
+            # set also the optional keys given as optional params
+            query_params.update(**{str(k): getattr(options, str(k))
+                                for k in filter(lambda k: getattr(options, str(k)),
+                                datasource.METRIC_QUERY_CLS.optional_keys())})
+
             try:
                 query = datasource.METRIC_QUERY_CLS(**query_params)
             except InvalidMetricQuery, e:
@@ -295,8 +305,15 @@ def build_datasource_query_type(datasource):
 
         @staticmethod
         def options():
-            return [(None, "--{}".format(key), key) for key in
-                    datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()]
+            # Command Options
+            command_options = []
+
+            # Datasource Options
+            datasource_options = [
+                ((option.hyphen_name,), {"dest": option.name, "help": option.description})
+                for option in datasource.METRIC_QUERY_CLS.optional_keys()]
+
+            return command_options + datasource_options
 
     return QueryCommand
 
@@ -323,8 +340,8 @@ def gramola():
         cmd = Subcommand(gramola_subcommand.NAME,
                          optparse.OptionParser(usage=gramola_subcommand.USAGE),
                          gramola_subcommand.DESCRIPTION)
-        for opt in gramola_subcommand.options():
-            cmd.parser.add_option(opt)
+        for option_args, option_kwargs in gramola_subcommand.options():
+            cmd.parser.add_option(*option_args, **option_kwargs)
 
         subcommands.append(cmd)
 
@@ -345,7 +362,7 @@ def gramola():
         sys.exit(1)
 
     try:
-        cmd.execute(*subargs, options=suboptions)
+        cmd.execute(suboptions, *subargs)
     except InvalidParams, e:
         print("{} invalid params {}".format(subcommand.name, e.error_params))
         sys.exit(1)

@@ -11,17 +11,24 @@ from gramola import log
 from requests.exceptions import RequestException
 
 from gramola.datasources.base import (
+    OptionalKey,
     DataSource,
     MetricQuery,
     DataSourceConfig
 )
 
+
 class GraphiteDataSourceConfig(DataSourceConfig):
     REQUIRED_KEYS = ('url',)
+    OPTIONAL_KEYS = ()
 
 
 class GraphiteMetricQuery(MetricQuery):
-    OPTIONAL_KEYS = ('since', 'until')
+    REQUIRED_KEYS = ()
+    OPTIONAL_KEYS = (
+        OptionalKey('since', 'Get values from, default -1h'),
+        OptionalKey('until', 'Get values until, default now')
+    )
 
 
 class GraphiteDataSource(DataSource):

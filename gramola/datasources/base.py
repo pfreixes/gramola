@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 This module implements the helper classes to implement new type of data sources
-such as Graphite, CloudWatch, OpenTSDB, etc. The `DataSource` is used as a base 
+such as Graphite, CloudWatch, OpenTSDB, etc. The `DataSource` is used as a base
 class to implement data sources and the `DataSourceConfig` is used to implement
 specific configurations.
 
@@ -22,13 +22,43 @@ class InvalidDataSourceConfig(InvalidGramolaDictionary):
     pass
 
 
+class OptionalKey(object):
+    """ OptionalKey type is used by :class:DataSourceConfig and :class:MetricsQuery
+    to store the OPTIONAL_KEYS and helps the gramola commands to build the properly
+    arguments.
+    """
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description
+
+    def __hash__(self):
+        """ OptionalKey instance is hashed over the GramolaDictionary using the name
+        of the option"""
+        return hash(self.name)
+
+    def __str__(self):
+        """ OptionalKeys is get from a dictionary using the name of the option"""
+        return self.name
+
+    def __cmp__(self, b):
+        """ Compare a OptionKey is just compare the name of the option """
+        if type(b) == str:
+            return cmp(self.name, b)
+        else:
+            return super(OptionalKey, self).__cmp__(b)
+
+    @property
+    def hyphen_name(self):
+        return "--{}".format(self.name)
+
+
 class DataSourceConfig(GramolaDictionary):
     """ Each data datasource instance is created along with one DataSourceConfig
     that will store the especific keys and values expected to configure one
     data source.
 
     Each data data source implementation have to implement a derivated of
-    DataSourceConfig class configuring the required keys using the 
+    DataSourceConfig class configuring the required keys using the
     REQUIRED_KEYS attribute and the optional keys uing the PTIONAL_KEYS
     attribute.
 
@@ -36,7 +66,7 @@ class DataSourceConfig(GramolaDictionary):
     keys: name.
     """
     REQUIRED_KEYS = ('type', 'name',)
-    OPTIONAL_KEYS = ()
+    OPTIONAL_KEYS = ()  # tuple of OptionalKey values.
 
     def __init__(self, *args, **kwargs):
         """
@@ -48,7 +78,6 @@ class DataSourceConfig(GramolaDictionary):
             raise InvalidDataSourceConfig(e.errors)
 
 
-
 class InvalidMetricQuery(InvalidGramolaDictionary):
     """ Raised when a MetricQuery doesn't get the right
     keys. An empty derivated class from InvalidGramolaDictionary just to
@@ -58,18 +87,18 @@ class InvalidMetricQuery(InvalidGramolaDictionary):
 
 
 class MetricQuery(GramolaDictionary):
-    """ Each data datasource implementaiton uses an specific implementation of 
+    """ Each data datasource implementaiton uses an specific implementation of
     MetricQuery class to get suport for these specific params to make queries
     for an specific datasource.
 
     Each data data source implementation have to implement a derivated of
-    MetricQuery class configuring the required keys using the 
+    MetricQuery class configuring the required keys using the
     REQUIRED_KEYS and the optional keys uing OPTIONAL_KEYS.
 
     MetricQuery implements the following keys : metric.
     """
     REQUIRED_KEYS = ('metric',)
-    OPTIONAL_KEYS = ()
+    OPTIONAL_KEYS = ()  # tuple of OptionalKey values.
 
     def __init__(self, *args, **kwargs):
         """
@@ -95,7 +124,7 @@ class DataSource(object):
     METRIC_QUERY_CLS = MetricQuery
 
     # Override the TYPE attribute with the short name
-    # of the DataSource.  
+    # of the DataSource.
     TYPE = None
 
     @classmethod
@@ -117,7 +146,7 @@ class DataSource(object):
         is not override, a instance of the
         DataSource.DATA_SOURCE_CONFIGURATION_CLS configuration class.
 
-        :param configuration: Data Source configuration 
+        :param configuration: Data Source configuration
         :type configuration: `DataSourceConfig` or a derivated one
         """
         self.configuration = configuration
@@ -134,7 +163,7 @@ class DataSource(object):
 
         Key by default looks at the `name` query param and is called when the user
         runs the following command and gets an autocompletion :
- 
+
             $ gramola query datasource metric.path...
 
         But if the data source implements other keys using a specific MetricQuery
@@ -156,7 +185,7 @@ class DataSource(object):
         return []
 
     def datapoints(self, query):
-        """ This function is used to pick up a set of datapoints 
+        """ This function is used to pick up a set of datapoints
         from the data source configured.
 
         The `query` object holds the query params given by the user, is

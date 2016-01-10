@@ -36,6 +36,10 @@ def test_data_source():
 
     return TestDataSource
 
+@pytest.fixture
+def empty_options():
+    return object()
+
 class TestGramolaCommand(object):
     def test_interface(self):
         class TestCommand(GramolaCommand):
@@ -47,7 +51,7 @@ class TestGramolaCommand(object):
         assert TestCommand in GramolaCommand.commands() 
 
 class TestDataSourceEcho(object):
-    def test_execute(self, test_data_source):
+    def test_execute(self, empty_options, test_data_source):
         # otupus returns a hardcoded name and the type of the
         # datasource along with the expected keys of datasource
         output = {
@@ -58,7 +62,7 @@ class TestDataSourceEcho(object):
         }
         command = build_datasource_echo_type(test_data_source)
         with patch("__builtin__.print") as print_patched:
-            command.execute(1, 2)
+            command.execute(empty_options, 1, 2)
             print_patched.assert_called_with(dumps(output))
 
     def test_invalid_params(self, test_data_source):
@@ -70,7 +74,7 @@ class TestDataSourceEcho(object):
 
 class TestQueryCommand(object):
     @patch("gramola.commands.sys")
-    def test_execute_stdin(self, sys_patched, test_data_source):
+    def test_execute_stdin(self, sys_patched, empty_options, test_data_source):
         buffer_ = dumps({'type': 'test', 'name': 'stdout', 'foo': 1, 'bar': 1})
         sys_patched.stdin.read.return_value = buffer_
 
@@ -78,7 +82,7 @@ class TestQueryCommand(object):
 
         command = build_datasource_query_type(test_data_source)
         with patch("__builtin__.print") as print_patched:
-            command.execute("-", "foo", "-1d", "now")
+            command.execute(empty_options, "-", "foo", "-1d", "now")
             print_patched.assert_called_with(sparkline.sparkify([1, 2, 3]))
 
         test_data_source.datapoints.assert_call_with(

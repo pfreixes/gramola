@@ -1,12 +1,23 @@
 import pytest
 
 from gramola.datasources.base import (
+    OptionalKey,
     DataSource,
     DataSourceConfig,
     InvalidDataSourceConfig,
     MetricQuery,
     InvalidMetricQuery
 )
+
+class TestOptionalKey(object):
+    def test_interface(self):
+        option = OptionalKey("field", "description")
+        assert option == "field"
+        assert option.name == "field"
+        assert option.description == "description"
+        d = {option: "value"}
+        assert d['field'] == "value"
+
 
 class TestDataSourceConfig(object):
 
