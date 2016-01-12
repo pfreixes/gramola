@@ -18,23 +18,7 @@ from gramola.datasources.base import (
     DataSourceConfig
 )
 
-@pytest.fixture
-def test_data_source():
-    class TestDataSourceConfig(DataSourceConfig):
-        REQUIRED_KEYS = ('foo', 'bar')
-        OPTINOAL_KEYS = ('gramola',)
-
-    class TestMetricQuery(MetricQuery):
-        REQUIRED_KEYS = ('since', 'until')
-
-    class TestDataSource(DataSource):
-        TYPE = 'test'
-        DATA_SOURCE_CONFIGURATION_CLS = TestDataSourceConfig
-        METRIC_QUERY_CLS = TestMetricQuery
-
-        datapoints = Mock()
-
-    return TestDataSource
+from .fixtures import test_data_source
 
 @pytest.fixture
 def empty_options():

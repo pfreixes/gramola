@@ -1,2 +1,3 @@
 requests==2.9.1
 pysparklines==0.9
+configobj==5.0.6

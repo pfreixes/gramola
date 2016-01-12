@@ -86,8 +86,8 @@ class DataSourceCommand(GramolaCommand):
         key values saved. For Example:
 
             {
-                "type": "graphite",
                 "name": "datasource name",
+                "type": "graphite",
                 "url": "http://localhost:9000"
             }
 
