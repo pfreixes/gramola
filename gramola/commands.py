@@ -241,17 +241,14 @@ def build_datasource_echo_type(datasource):
 class DataSourceListCommand(GramolaCommand):
     NAME = 'datasource-list'
     DESCRIPTION = 'List all saved datasources'
+    USAGE = '%prog'
 
     @staticmethod
-    def execute(store=None):
-        """ List all datasouces.
-
-        :param store: Alternatvie :class:`gramola.store.Store` to the default one.
-        :return: list of derivated instancess of
-                 :class:`gramola.datasources.base.DataSourceConfig`
-        """
-        user_store = store or DefaultStore()
-        return user_store.datasources()
+    def execute(options, suboptions, *subargs):
+        """ List all datasouces."""
+        store = options.store and Store(path=options.store) or Store()
+        for datasource in store.datasources():
+            print("Datasource `{}` ({})".format(datasource.name, datasource.type))
 
 
 def build_datasource_query_type(datasource):

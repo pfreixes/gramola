@@ -10,6 +10,7 @@ from gramola.commands import (
     GramolaCommand,
     DataSourceCommand,
     DataSourceRmCommand,
+    DataSourceListCommand,
     build_datasource_echo_type,
     build_datasource_query_type
 )
@@ -115,6 +116,14 @@ class TestDataSourceEcho(object):
         command = build_datasource_echo_type(test_data_source)
         with pytest.raises(InvalidParams):
             command.execute(empty_options, empty_suboptions, 1)
+
+
+class TestDataSourceList(object):
+    def test_execute(self, empty_options, empty_suboptions, test_data_source, nonedefault_store):
+        empty_options.store = nonedefault_store.path
+        with patch("__builtin__.print") as print_patched:
+            DataSourceListCommand.execute(empty_options, empty_suboptions)
+            print_patched.assert_called_with("Datasource `datasource two` (test)")
 
 
 class TestQueryCommand(object):
