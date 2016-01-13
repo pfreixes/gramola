@@ -115,7 +115,7 @@ class Store(object):
         """
         Return all datshboards stored as a list of dictionaries, each dictionary
         has the name of the dashbaord and the metrics queries related with its.
-        For example:
+        For 
 
             [{"name": "dashboard name", "queries": [{query1}, {query2} ..... ]]
 

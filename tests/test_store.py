@@ -10,26 +10,7 @@ from gramola.store import (
 )
 
 from .fixtures import test_data_source
-
-CONFIG = """
-[datasource one]
-type=test
-foo=a
-bar=b
-
-[datasource two]
-type=test
-foo=c
-bar=d
-gramola=e
-"""
-
-
-@pytest.fixture
-def nonedefault_store(tmpdir):
-    fd = tmpdir.join(Store.DEFAULT_DATASOURCES_FILENAME)
-    fd.write(CONFIG)
-    return Store(path=str(tmpdir))
+from .fixtures import nonedefault_store
 
 
 class TestStore(object):

@@ -28,6 +28,12 @@ import sparkline
 from json import loads
 
 from gramola import log
+from gramola.store import (
+    Store,
+    NotFound,
+    DuplicateEntry
+)
+
 from gramola.contrib.subcommand import (
     Subcommand,
     SubcommandsOptionParser
@@ -52,7 +58,16 @@ class GramolaCommand(object):
     USAGE = None
 
     @staticmethod
-    def execute(*args, **kwargs):
+    def execute(options, suboptions, *subargs):
+        """This method is called by gramola entry point to perform
+        the operations regarding a subcommand, overide this method
+        with all of this stuff related with the subcomand
+
+        :param options: Options given by the user as gramola options
+        :param suboptions: Options given by the user as subcommand options
+        :param subargs: Tuple args, each subcommand gives mean to each arg
+                        belonging to this list.
+        """
         raise NotImplemented()
 
     @staticmethod
@@ -81,27 +96,20 @@ class DataSourceCommand(GramolaCommand):
     USAGE = '%prog NAME'
 
     @staticmethod
-    def execute(name, store=None):
+    def execute(options, suboptions, *subargs):
         """ Returns info about one specific datasource as a dictionary with all
-        key values saved. For Example:
-
-            {
-                "name": "datasource name",
-                "type": "graphite",
-                "url": "http://localhost:9000"
-            }
-
-        :param name: Name of the datasource.
-        :param store: Alternatvie :class:`gramola.store.Store` to the default one.
-        :rtype: dict.
-        :raises KeyError: If the given datasource name does not exist.
+        key values saved.
         """
-        user_store = store or DefaultStore()
-
         try:
-            return filter(lambda d: d['name'] == name, user_store.datasources())[0]
+            name = subargs[0]
         except IndexError:
-            raise KeyError(name)
+            raise InvalidParams("NAME")
+
+        store = options.store and Store(path=options.store) or Store()
+        try:
+            print(store.datasources(name=name)[0].dumps())
+        except IndexError:
+            print("Datasource {} not found".format(name))
 
 
 def datasource_test(name, store=None):
@@ -114,15 +122,25 @@ def datasource_test(name, store=None):
     raise NotImplemented()
 
 
-def datasource_rm(name, store=None):
-    """ Removes an already saved datasource.
+class DataSourceRmCommand(GramolaCommand):
+    NAME = 'datasource-rm'
+    DESCRIPTION = 'Remove an already saved datasource'
+    USAGE = '%prog NAME'
 
-    :param name: Name of the datasource.
-    :param store: Alternatvie :class:`gramola.store.Store` to the default one.
-    :rtype: boolean.
-    :raises gramola.datasource.DataSourceNotFound: If the given name does not exist.
-    """
-    raise NotImplemented()
+    @staticmethod
+    def execute(options, suboptions, *subargs):
+        """Remove an already saved datasource """
+        try:
+            name = subargs[0]
+        except IndexError:
+            raise InvalidParams("NAME")
+
+        store = options.store and Store(path=options.store) or Store()
+        try:
+            store.rm_datasource(name)
+            print("Datasource {} removed".format(name))
+        except NotFound:
+            print("Datasource {} not found".format(name))
 
 
 def datasource_add(name, store=None, dry_mode=False, test=True, **datasource_params):
@@ -183,15 +201,9 @@ def build_datasource_echo_type(datasource):
                 s not in ['name', 'type']]))
 
         @staticmethod
-        def execute(options, *datasource_args):
+        def execute(options, suboptions, *subargs):
             """ Echo a datasource configuration to be used by query command, the arguments
             depend on the kind of datasource.
-
-            :param options: Options given along with the command arguments. Use it to find out
-                            specific options for the data source.
-            :param datasource_args: Values of the required keys for the datasource.
-            :return: A valid payload to be used as stdin of the query-<type> command.
-            :raises InvalidParams: If datasource_args are not completed.
             """
             datasource_params = {
                 # Type is a required param that is coupled with
@@ -207,7 +219,7 @@ def build_datasource_echo_type(datasource):
 
             datasource_params.update(
                 {k: v for v, k in
-                    zip(datasource_args,
+                    zip(subargs,
                         filter(lambda k: k not in ['name', 'type'],
                                datasource.DATA_SOURCE_CONFIGURATION_CLS.required_keys()))}
             )
@@ -256,33 +268,27 @@ def build_datasource_query_type(datasource):
             [s.upper() for s in datasource.METRIC_QUERY_CLS.required_keys()]))
 
         @staticmethod
-        def execute(options, datasource_name, *query_args):
-            """ Runs a query using a datasource and print it as a char graphic
-
-            :param options: Options given along with the command arguments. Use it to find out
-                            specific options for the query args.
-            :param datasource_name: Name of the datasource used, the datasource will be get from
-                                    the user store. Altought special char `-` can be used as
-                                    alternative to read the datasource config from the stdin.
-            :param query_args: Arguments given as metrics query, specific for each metric query.
-            :raises InvalidDataSourceConfig: Data source config is invalid.
-            :raises InvalidMetricQuery: Query params are invalid.
-            :raises ValueError: If the given datasource from stdin is not well formatted.
+        def execute(options, suboptions, *subargs):
+            """ Runs a query using a datasource and print it as a char graphic.
             """
-            if datasource_name == '-':
+            try:
+                name = subargs[0]
+            except IndexError:
+                raise InvalidParams("NAME")
+
+            if name == '-':
                 buffer_ = sys.stdin.read()
                 config = loads(buffer_)
             else:
-                user_store = store or DefaultStore()
+                store = options.store and Store(path=options.store) or Store()
                 try:
-                    config = filter(lambda d: d['name'] == datasource_name,
-                                    user_store.datasources())[0]
+                    config = store.datasources(name=name)[0]
                 except IndexError:
-                    print("Datasource {} not found".format(datasource_name), file=sys.stderr)
+                    print("Datasource {} not found".format(name), file=sys.stderr)
                     return
 
             query_params = {
-                k: v for v, k in zip(query_args,
+                k: v for v, k in zip(subargs[1:],
                                      datasource.METRIC_QUERY_CLS.required_keys())
             }
 
@@ -353,6 +359,7 @@ def gramola():
 
     options, subcommand, suboptions, subargs = parser.parse_args()
     log.setup(verbose=options.verbose, quite=options.quite)
+
     try:
         cmd = GramolaCommand.find(subcommand.name)
     except KeyError:
@@ -362,7 +369,8 @@ def gramola():
         sys.exit(1)
 
     try:
-        cmd.execute(suboptions, *subargs)
+        cmd.execute(options, suboptions, *subargs)
     except InvalidParams, e:
-        print("{} invalid params {}".format(subcommand.name, e.error_params))
+        print("Invalid params for {} command, error: {}".format(subcommand.name. e.errors))
+        print("Get help with gramola {} --help".format(subcommand.name))
         sys.exit(1)

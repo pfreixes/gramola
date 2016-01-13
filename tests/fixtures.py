@@ -2,6 +2,7 @@ import pytest
 
 from mock import Mock
 
+from gramola.store import Store
 from gramola.datasources.base import (
     MetricQuery,
     DataSource,
@@ -25,3 +26,24 @@ def test_data_source():
         datapoints = Mock()
 
     return TestDataSource
+
+
+CONFIG = """
+[datasource one]
+type=test
+foo=a
+bar=b
+
+[datasource two]
+type=test
+foo=c
+bar=d
+gramola=e
+"""
+
+
+@pytest.fixture
+def nonedefault_store(tmpdir):
+    fd = tmpdir.join(Store.DEFAULT_DATASOURCES_FILENAME)
+    fd.write(CONFIG)
+    return Store(path=str(tmpdir))
