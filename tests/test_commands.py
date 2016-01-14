@@ -12,6 +12,7 @@ from gramola.commands import (
     DataSourceRmCommand,
     DataSourceTestCommand,
     DataSourceListCommand,
+    build_datasource_add_type,
     build_datasource_echo_type,
     build_datasource_query_type
 )
@@ -117,6 +118,41 @@ class TestDataSourceTest(object):
         # DataSource takes one param
         with pytest.raises(InvalidParams):
             DataSourceTestCommand.execute(empty_options, empty_suboptions)
+
+
+class TestDataSourceAdd(object):
+    def test_execute(self, empty_options, empty_suboptions, test_data_source, nonedefault_store):
+        empty_options.store = nonedefault_store.path
+        test_data_source.test.return_value = True
+        command = build_datasource_add_type(test_data_source)
+        command.execute(empty_options, empty_suboptions, "test name", 1, 2)
+        assert len(nonedefault_store.datasources(name="test name")) == 1
+
+    def test_execute_service_unavailable(self, empty_options, empty_suboptions, test_data_source,
+                                         nonedefault_store):
+        empty_options.store = nonedefault_store.path
+        test_data_source.test.return_value = False
+        empty_suboptions.not_test = False
+        command = build_datasource_add_type(test_data_source)
+        with patch("__builtin__.print") as print_patched:
+            command.execute(empty_options, empty_suboptions, "test name 2", 1, 2)
+            assert len(nonedefault_store.datasources(name="test name 2")) == 0
+            print_patched.assert_called_with(
+                    "THIS DATA SOURCE NOT BE ADDED, use --not-test flag to add it even")
+
+    def test_execute_test_disabled(self, empty_options, empty_suboptions, test_data_source,
+                                   nonedefault_store):
+        empty_options.store = nonedefault_store.path
+        test_data_source.test.return_value = False
+        empty_suboptions.not_test = True
+        command = build_datasource_add_type(test_data_source)
+        command.execute(empty_options, empty_suboptions, "test name", 1, 2)
+        assert len(nonedefault_store.datasources(name="test name")) == 1
+
+    def test_invalid_params(self, empty_options, empty_suboptions, test_data_source):
+        command = build_datasource_add_type(test_data_source)
+        with pytest.raises(InvalidParams):
+            command.execute(empty_options, empty_suboptions)
 
 
 class TestDataSourceEcho(object):

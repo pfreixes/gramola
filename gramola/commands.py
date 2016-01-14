@@ -159,47 +159,6 @@ class DataSourceRmCommand(GramolaCommand):
             print("Datasource {} not found".format(name))
 
 
-def datasource_add(name, store=None, dry_mode=False, test=True, **datasource_params):
-    """ Add a new datasource with a specific `name`. The params of the datasource depends
-    of the type of data source.
-
-    :param name: Name of the datasource.
-    :param store: Alternatvie :class:`gramola.store.Store` to the default one.
-    :param dry_mode: Dont save at last, usefull combined with `test` enabled to check
-                     that the datasource works.
-    :param datasource_params: Specific keyword arguments for the datasource.
-    :rtype: boolean.
-    :raises KeyError: If the type of data source is not implemented.
-    :raises gramola.datasource.InvalidDataSourceConfig: The datasource_params are invalid.
-    :raises gramola.store.DuplicateEntry: If the datasource name already exists.
-    """
-    # find the right class ipmlementation
-    cls_datasource = DataSources.find([datasource_params['type']])
-
-    # create a spceific configuration for this data source and instantiate
-    config = cls_datasource.DATA_SOURCE_CONFIGURATION_CLS(**datasource_params)
-    data_source = cls_datasource(config)
-
-    # if test is not disabled specifically the datasource wont be saved
-    # until it will pass the test step.
-    if test:
-        try:
-            if not data_source.test():
-                log.error("Testing the datasource .... Failed")
-                return False
-            log.info("Testing the datasource .... Ok")
-        except Exception, e:
-            log.error("Testing the datasource .... Error")
-            raise e
-
-    if dry_mode:
-        log.info("Running in dry-mode, nothing more todo")
-        return True
-
-    user_store = store or DefaultStore()
-    user_store.save_datasource(config)
-
-
 def build_datasource_echo_type(datasource):
     """
     Build the datasource-echo command for one type of datasource, it turns out
@@ -241,10 +200,11 @@ def build_datasource_echo_type(datasource):
             )
 
             try:
-                print(datasource.DATA_SOURCE_CONFIGURATION_CLS(
-                        **datasource_params).dumps())
+                config = datasource.DATA_SOURCE_CONFIGURATION_CLS(**datasource_params)
             except InvalidDataSourceConfig, e:
                 raise InvalidParams(e.errors)
+
+            print(config.dumps())
 
         @staticmethod
         def options():
@@ -252,6 +212,68 @@ def build_datasource_echo_type(datasource):
                     datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()]
 
     return DataSourceEchoCommand
+
+
+def build_datasource_add_type(datasource):
+    """
+    Build the datasource-add command for one type of datasource, it turns out
+    in a new command named as datasource-add-<type>.
+    """
+    class DataSourceAddCommand(GramolaCommand):
+        NAME = 'datasource-add-{}'.format(datasource.TYPE)
+        DESCRIPTION = 'Add a datasource {} configuration'.format(datasource.TYPE)
+
+        # All datasources inherited the `type` and the `name` fields as a
+        # required params, typed commands have already the type and they are
+        # removed as command args. And in the Echo case also the name.
+        USAGE = '%prog {}'.format(" ".join(
+            [s.upper() for s in datasource.DATA_SOURCE_CONFIGURATION_CLS.required_keys() if
+                s not in ['type']]))
+
+        @staticmethod
+        def execute(options, suboptions, *subargs):
+            """ Add a datasource configuration to user store """
+            try:
+                name = subargs[0]
+            except IndexError:
+                raise InvalidParams("NAME")
+
+            datasource_params = {
+                # Type is a required param that is coupled with
+                # with the command.
+                'type': datasource.TYPE,
+                'name': name
+            }
+
+            datasource_params.update(
+                {k: v for v, k in
+                    zip(subargs[1:],
+                        filter(lambda k: k not in ['name', 'type'],
+                               datasource.DATA_SOURCE_CONFIGURATION_CLS.required_keys()))}
+            )
+
+            try:
+                config = datasource.DATA_SOURCE_CONFIGURATION_CLS(**datasource_params)
+            except InvalidDataSourceConfig, e:
+                raise InvalidParams(e.errors)
+
+            ds = datasource(config)
+            if not suboptions.not_test and not ds.test():
+                # only save if the test passes
+                print("Data source test failed, might the service not being unavailable ?")
+                print("THIS DATA SOURCE NOT BE ADDED, use --not-test flag to add it even")
+                return
+
+            store = options.store and Store(path=options.store) or Store()
+            store.add_datasource(config)
+
+        @staticmethod
+        def options():
+            return [(None, "--{}".format(key), key) for key in
+                    datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()] +\
+                            [(None, "--not-test", "not-test")]
+
+    return DataSourceAddCommand
 
 
 class DataSourceListCommand(GramolaCommand):
@@ -345,8 +367,12 @@ def gramola():
         $ gramola <global options> <subcommand> <subcommand options> <args ..>
     """
     # Build as many datasource-echo commands as many types of datasources there are.
-    typed_commands = [build_datasource_echo_type(datasource)
-                      for datasource in DataSource.implementations()]
+    echo_commands = [build_datasource_echo_type(datasource)
+                     for datasource in DataSource.implementations()]
+
+    # Build as many datasource-add commands as many types of datasources there are.
+    add_commands = [build_datasource_add_type(datasource)
+                    for datasource in DataSource.implementations()]
 
     # Build as many query commands as many types of datasources there are.
     query_commands = [build_datasource_query_type(datasource)
