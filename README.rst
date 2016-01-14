@@ -33,9 +33,8 @@ the following snippet shows:
 
 .. code-block:: bash
 
-    $ gramola datasource-add-graphite http://localhost:9000 "Graphite localhost"
-    Testing datasource ... Ok
-    Added `Graphite localhost`, 1 datasources avaialbles now.
+    $ gramola datasource-add-graphite "Graphite localhost" http://localhost:9000
+    Datasource `Graphite localhost` added
 
 Then the data sources is always available and can be used to query your metrics.
 
@@ -51,5 +50,3 @@ Developing
 
 .. _Grafana: http://grafana.org/
 .. _sparklines: https://en.wikipedia.org/wiki/Sparkline
-
-

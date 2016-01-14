@@ -66,7 +66,7 @@ class TestDataSource(object):
         empty_options.store = nonedefault_store.path
         with patch("__builtin__.print") as print_patched:
             DataSourceCommand.execute(empty_options, empty_suboptions, "xxxx")
-            print_patched.assert_called_with("Datasource xxxx not found")
+            print_patched.assert_called_with("Datasource `xxxx` NOT FOUND")
 
     def test_invalid_params(self, empty_options, empty_suboptions,
                             test_data_source, nonedefault_store):
@@ -81,14 +81,14 @@ class TestDataSourceRm(object):
         empty_options.store = nonedefault_store.path
         with patch("__builtin__.print") as print_patched:
             DataSourceRmCommand.execute(empty_options, empty_suboptions, "datasource one")
-            print_patched.assert_called_with("Datasource datasource one removed")
+            print_patched.assert_called_with("Datasource `datasource one` removed")
 
     def test_execute_not_found(self, empty_options, empty_suboptions,
                                test_data_source, nonedefault_store):
         empty_options.store = nonedefault_store.path
         with patch("__builtin__.print") as print_patched:
             DataSourceRmCommand.execute(empty_options, empty_suboptions, "xxxx")
-            print_patched.assert_called_with("Datasource xxxx not found")
+            print_patched.assert_called_with("Datasource `xxxx` not found, NOT REMOVED")
 
     def test_invalid_params(self, empty_options, empty_suboptions, test_data_source,
                             nonedefault_store):
@@ -110,7 +110,7 @@ class TestDataSourceTest(object):
         empty_options.store = nonedefault_store.path
         with patch("__builtin__.print") as print_patched:
             DataSourceTestCommand.execute(empty_options, empty_suboptions, "xxxx")
-            print_patched.assert_called_with("Datasource xxxx not found")
+            print_patched.assert_called_with("Datasource `xxxx` not found, NOT TESTED")
 
     def test_invalid_params(self, empty_options, empty_suboptions, test_data_source,
                             nonedefault_store):
@@ -132,13 +132,13 @@ class TestDataSourceAdd(object):
                                          nonedefault_store):
         empty_options.store = nonedefault_store.path
         test_data_source.test.return_value = False
-        empty_suboptions.not_test = False
+        empty_suboptions.no_test = False
         command = build_datasource_add_type(test_data_source)
         with patch("__builtin__.print") as print_patched:
             command.execute(empty_options, empty_suboptions, "test name 2", 1, 2)
             assert len(nonedefault_store.datasources(name="test name 2")) == 0
             print_patched.assert_called_with(
-                    "THIS DATA SOURCE NOT BE ADDED, use --not-test flag to add it even")
+                    "THIS DATA SOURCE NOT BE ADDED, use --no-test flag to add it even")
 
     def test_execute_test_disabled(self, empty_options, empty_suboptions, test_data_source,
                                    nonedefault_store):
@@ -162,8 +162,8 @@ class TestDataSourceEcho(object):
         output = {
             'type': 'test',
             'name': 'stdout',
-            'bar': 2,
-            'foo': 1,
+            'bar': 1,
+            'foo': 2,
         }
         command = build_datasource_echo_type(test_data_source)
         with patch("__builtin__.print") as print_patched:

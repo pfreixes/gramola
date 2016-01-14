@@ -137,4 +137,8 @@ class GramolaDictionary(object):
         for base in cls.__bases__:
             if hasattr(base, '_pick_up_attr'):
                 values += base._pick_up_attr(attr)
-        return values
+
+        # the values are picked up from top to button, they
+        # have to seen inside out, lets return from button
+        # to top
+        return tuple(v for v in reversed(values))

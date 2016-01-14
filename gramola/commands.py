@@ -109,7 +109,7 @@ class DataSourceCommand(GramolaCommand):
         try:
             print(store.datasources(name=name)[0].dumps())
         except IndexError:
-            print("Datasource {} not found".format(name))
+            print("Datasource `{}` NOT FOUND".format(name))
 
 
 class DataSourceTestCommand(GramolaCommand):
@@ -129,13 +129,13 @@ class DataSourceTestCommand(GramolaCommand):
         try:
             config = store.datasources(name=name)[0]
         except IndexError:
-            print("Datasource {} not found".format(name))
+            print("Datasource `{}` not found, NOT TESTED".format(name))
             return
 
         if DataSource.find(config.type)(config).test():
-            print("Datasource {} ...... Ok".format(name))
+            print("Datasource `{}` seems ok".format(name))
         else:
-            print("Datasource {} ...... FAILED!".format(name))
+            print("Datasource `{}` FAILED!".format(name))
 
 
 class DataSourceRmCommand(GramolaCommand):
@@ -154,9 +154,9 @@ class DataSourceRmCommand(GramolaCommand):
         store = options.store and Store(path=options.store) or Store()
         try:
             store.rm_datasource(name)
-            print("Datasource {} removed".format(name))
+            print("Datasource `{}` removed".format(name))
         except NotFound:
-            print("Datasource {} not found".format(name))
+            print("Datasource `{}` not found, NOT REMOVED".format(name))
 
 
 def build_datasource_echo_type(datasource):
@@ -208,8 +208,15 @@ def build_datasource_echo_type(datasource):
 
         @staticmethod
         def options():
-            return [(None, "--{}".format(key), key) for key in
-                    datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()]
+            # Command Options
+            command_options = []
+
+            # Datasource Options
+            datasource_options = [
+                ((option.hyphen_name,), {"dest": option.name, "help": option.description})
+                for option in datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()]
+
+            return command_options + datasource_options
 
     return DataSourceEchoCommand
 
@@ -233,22 +240,16 @@ def build_datasource_add_type(datasource):
         @staticmethod
         def execute(options, suboptions, *subargs):
             """ Add a datasource configuration to user store """
-            try:
-                name = subargs[0]
-            except IndexError:
-                raise InvalidParams("NAME")
-
             datasource_params = {
                 # Type is a required param that is coupled with
                 # with the command.
                 'type': datasource.TYPE,
-                'name': name
             }
 
             datasource_params.update(
                 {k: v for v, k in
-                    zip(subargs[1:],
-                        filter(lambda k: k not in ['name', 'type'],
+                    zip(subargs,
+                        filter(lambda k: k not in ['type'],
                                datasource.DATA_SOURCE_CONFIGURATION_CLS.required_keys()))}
             )
 
@@ -258,20 +259,32 @@ def build_datasource_add_type(datasource):
                 raise InvalidParams(e.errors)
 
             ds = datasource(config)
-            if not suboptions.not_test and not ds.test():
+            if not suboptions.no_test and not ds.test():
                 # only save if the test passes
                 print("Data source test failed, might the service not being unavailable ?")
-                print("THIS DATA SOURCE NOT BE ADDED, use --not-test flag to add it even")
+                print("THIS DATA SOURCE NOT BE ADDED, use --no-test flag to add it even")
                 return
 
             store = options.store and Store(path=options.store) or Store()
-            store.add_datasource(config)
+            try:
+                store.add_datasource(config)
+                print("Datasource `{}` added".format(subargs[0]))
+            except DuplicateEntry:
+                print("Datasource `{}` already exists, NOT SAVED".format(subargs[0]))
+
 
         @staticmethod
         def options():
-            return [(None, "--{}".format(key), key) for key in
-                    datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()] +\
-                            [(None, "--not-test", "not-test")]
+            # Command Options
+            command_options = [
+                (("--no-test",), {"action": "store_true", "help": "Dont run the data source test"})]
+
+            # Datasource Options
+            datasource_options = [
+                ((option.hyphen_name,), {"dest": option.name, "help": option.description})
+                for option in datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()]
+
+            return command_options + datasource_options
 
     return DataSourceAddCommand
 
@@ -410,6 +423,6 @@ def gramola():
     try:
         cmd.execute(options, suboptions, *subargs)
     except InvalidParams, e:
-        print("Invalid params for {} command, error: {}".format(subcommand.name. e.errors))
+        print("Invalid params for {} command, error: {}".format(subcommand.name, e.error_params))
         print("Get help with gramola {} --help".format(subcommand.name))
         sys.exit(1)
