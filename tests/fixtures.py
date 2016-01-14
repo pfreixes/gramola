@@ -9,6 +9,7 @@ from gramola.datasources.base import (
     DataSourceConfig
 )
 
+
 @pytest.fixture
 def test_data_source():
     class TestDataSourceConfig(DataSourceConfig):
@@ -24,6 +25,7 @@ def test_data_source():
         METRIC_QUERY_CLS = TestMetricQuery
 
         datapoints = Mock()
+        test = Mock()
 
     return TestDataSource
 

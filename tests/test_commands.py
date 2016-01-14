@@ -10,6 +10,7 @@ from gramola.commands import (
     GramolaCommand,
     DataSourceCommand,
     DataSourceRmCommand,
+    DataSourceTestCommand,
     DataSourceListCommand,
     build_datasource_echo_type,
     build_datasource_query_type
@@ -94,6 +95,28 @@ class TestDataSourceRm(object):
         # DataSource takes one param
         with pytest.raises(InvalidParams):
             DataSourceRmCommand.execute(empty_options, empty_suboptions)
+
+
+class TestDataSourceTest(object):
+    def test_execute(self, empty_options, empty_suboptions, test_data_source, nonedefault_store):
+        test_data_source.test.return_value = True
+        empty_options.store = nonedefault_store.path
+        DataSourceTestCommand.execute(empty_options, empty_suboptions, "datasource one")
+        test_data_source.test.assert_called
+
+    def test_execute_not_found(self, empty_options, empty_suboptions,
+                               test_data_source, nonedefault_store):
+        empty_options.store = nonedefault_store.path
+        with patch("__builtin__.print") as print_patched:
+            DataSourceTestCommand.execute(empty_options, empty_suboptions, "xxxx")
+            print_patched.assert_called_with("Datasource xxxx not found")
+
+    def test_invalid_params(self, empty_options, empty_suboptions, test_data_source,
+                            nonedefault_store):
+        empty_options.store = nonedefault_store.path
+        # DataSource takes one param
+        with pytest.raises(InvalidParams):
+            DataSourceTestCommand.execute(empty_options, empty_suboptions)
 
 
 class TestDataSourceEcho(object):

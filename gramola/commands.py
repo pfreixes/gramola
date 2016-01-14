@@ -112,14 +112,30 @@ class DataSourceCommand(GramolaCommand):
             print("Datasource {} not found".format(name))
 
 
-def datasource_test(name, store=None):
-    """ Test an already saved datasource.
+class DataSourceTestCommand(GramolaCommand):
+    NAME = 'datasource-test'
+    DESCRIPTION = 'Test if the service behind a data source is available'
+    USAGE = '%prog NAME'
 
-    :param name: Name of the datasource.
-    :param store: Alternatvie :class:`gramola.store.Store` to the default one.
-    :raises gramola.datasource.DataSourceNotFound: If the given name does not exist.
-    """
-    raise NotImplemented()
+    @staticmethod
+    def execute(options, suboptions, *subargs):
+        """ Test an already saved datasource."""
+        try:
+            name = subargs[0]
+        except IndexError:
+            raise InvalidParams("NAME")
+
+        store = options.store and Store(path=options.store) or Store()
+        try:
+            config = store.datasources(name=name)[0]
+        except IndexError:
+            print("Datasource {} not found".format(name))
+            return
+
+        if DataSource.find(config.type)(config).test():
+            print("Datasource {} ...... Ok".format(name))
+        else:
+            print("Datasource {} ...... FAILED!".format(name))
 
 
 class DataSourceRmCommand(GramolaCommand):
