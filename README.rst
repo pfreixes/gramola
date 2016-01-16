@@ -43,7 +43,7 @@ Then the data sources is always available and can be used to query your metrics.
     $ gramola query-graphite "Graphite localhost" server.web1.load
     ▁▂▁▁▁▁▂▂▁▃▂▄█▃▁▂
 
-To get more info about Gramola and how its features can be used read the full documentation here
+To get more info about Gramola and how its features can be used read the full documentation `here <doc/index.rst>`
 
 Developing
 ----------
