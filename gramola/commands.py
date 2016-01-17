@@ -340,9 +340,9 @@ def build_datasource_query_type(datasource):
                                      datasource.METRIC_QUERY_CLS.required_keys())
             }
 
-            # set also the optional keys given as optional params
-            query_params.update(**{str(k): getattr(options, str(k))
-                                for k in filter(lambda k: getattr(options, str(k)),
+            # set also the optional keys given as suboptional params
+            query_params.update(**{str(k): getattr(suboptions, str(k))
+                                for k in filter(lambda k: getattr(suboptions, str(k)),
                                 datasource.METRIC_QUERY_CLS.optional_keys())})
 
             try:
@@ -351,7 +351,7 @@ def build_datasource_query_type(datasource):
                 raise InvalidParams(e.errors)
 
             try:
-                datapoints = datasource.from_config(**config).datapoints(query)
+                datapoints = datasource(config).datapoints(query)
                 if datapoints:
                     print(sparkline.sparkify([value for value, ts in datapoints]))
             except InvalidDataSourceConfig, e:

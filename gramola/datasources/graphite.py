@@ -58,7 +58,12 @@ class GraphiteDataSource(DataSource):
         # Graphite publihes the `/metrics/find` API endpoint to retrieve the
         # availabe metrics path from a given value.
         query = "*" if not current else current + "*"
-        url = self.configuration.url + '/metrics/find' 
+
+        if self.configuration.url[-1] != '/':
+            url = self.configuration.url + '/metrics/find' 
+        else:
+            url = self.configuration.url + 'metrics/find' 
+
         params = {'query': query}
 
         response = self._safe_request(url, params)
@@ -86,8 +91,12 @@ class GraphiteDataSource(DataSource):
             # to configure the json output
             'format': 'json'
         }
-        
-        url = self.configuration.url + '/render' 
+
+        if self.configuration.url[-1] != '/':
+            url = self.configuration.url + '/render' 
+        else: 
+            url = self.configuration.url + 'render'
+
         response = self._safe_request(url, params)
 
         if response is None:
