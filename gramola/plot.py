@@ -12,7 +12,7 @@ like the following one:
 +***   ********************   *****  ******
 +*******************************************
 +-------------------------------------------
-min=1, max=34
+min=1, max=34, last=2
 
 The plot is rendred using 10 rows, it means that all datapoints that have to be displayed
 will be scaled until they fit between the range [0, 10]. By default the Plot uses the
@@ -63,11 +63,12 @@ class Plot(object):
             # remove the two lines used to render the plot by the
             # the previous call to refresh the plot using the
             # same console space
-            for i in range(0, self.rows):
+            for i in range(0, self.rows+1):
                 sys.stdout.write("\033[K")   # remove line
                 sys.stdout.write("\033[1A")  # up the cursor
 
-        values = [value for value, ts in datapoints or [0]]
+        # FIXME: nowadays Gramola supports only integer values
+        values = [int(value) for value, ts in datapoints or [0]]
 
         # find the right division value
         max_x = self.max_x or max(values)
@@ -81,6 +82,6 @@ class Plot(object):
                     sys.stdout.write(" ")
             sys.stdout.write("\n")
         sys.stdout.write("-"*self.width() + "\n")
-        sys.stdout.write("min={}, max={}".format(min(values), max(values)))
+        sys.stdout.write("min={}, max={}, last={}".format(min(values), max(values), values[-1]))
         sys.stdout.flush()
         self.__drawn = True

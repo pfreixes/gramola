@@ -23,7 +23,7 @@ DEFAULT_ROWS_FIXTURE = [
  *********
 **********
 ----------
-min=10, max=100"""
+min=10, max=100, last=100"""
 ]
 
 
@@ -38,7 +38,7 @@ FIVE_ROWS_FIXTURE = [
    *******
  *********
 ----------
-min=10, max=100"""
+min=10, max=100, last=100"""
 ]
 
 MAXX_ROWS_FIXTURE = [
@@ -56,7 +56,7 @@ MAXX_ROWS_FIXTURE = [
  *        
 ****      
 -----------
-min=10, max=50"""
+min=10, max=50, last=100"""
 ]
 
 
