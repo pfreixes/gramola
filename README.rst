@@ -3,7 +3,7 @@ Gramola
 
 **STILL IN DEVELOPING, comming soon.**
 
-Gramola is a console port of Grafana_ that uses sparklines_ to render time series data points. Because sometimes we need
+Gramola is a console port of Grafana_ that uses console plots to render time series data points. Because sometimes we need
 a quick view of one metric for debuging propouses, or just because the numbers doesn't matter and our concern is about
 how the metric behaves, Gramola gives us a easy, fast and polyglot data source implementation to make it.
 
@@ -26,7 +26,19 @@ snippet shows how it can be done:
 .. code-block:: bash
 
     $ gramola datasource-echo-graphite http://localhost:9000 | gramola query-graphite - server.web1.load
-    ▁▂▁▁▁▁▂▂▁▃▂▄█▃▁▂
+                              *                                                                  
+                              *                                                                  
+                              *                                                                  
+                           *  *               *               **         *                       
+       *                   *  *               *               **       * *                       
+       *  * *           *  *  *        *   *  *      * *  *   ***     ** ** *     * **           
+       ** * *  *        *  * **  *     *   *  * *    * *  *   ***     ** ** *     * **     *    *
+       **** *  **       *  * **  *     *   * ** *    * * **   ***  * *** ** *    ***** * ********
+       **** *  *****  ***  ***** **    * * **** *    *** **   ***  ***** ** *** *****************
+       ******  ****** **** ********    **********   ******** *********** ** *********************
+    ---------------------------------------------------------------------------------------------
+    min=0, max=100, last=45
+
 
 But usually we want to save our datasources to be used further by further queries. Gramola allows us to save data sources as 
 the following snippet shows:
@@ -36,17 +48,10 @@ the following snippet shows:
     $ gramola datasource-add-graphite "Graphite localhost" http://localhost:9000
     Datasource `Graphite localhost` added
 
-Then the data sources is always available and can be used to query your metrics.
-
-.. code-block:: bash
-
-    $ gramola query-graphite "Graphite localhost" server.web1.load
-    ▁▂▁▁▁▁▂▂▁▃▂▄█▃▁▂
-
-To get more info about Gramola and how its features can be used read the full documentation `here <doc/index.rst>`
+Then the data sources is always available and can be used to query your metrics. To get more info about Gramola and how 
+its features can be used read the full documentation `here <doc/index.rst>`_
 
 Developing
 ----------
 
 .. _Grafana: http://grafana.org/
-.. _sparklines: https://en.wikipedia.org/wiki/Sparkline

@@ -368,8 +368,8 @@ def build_datasource_query_type(datasource_cls):
             command_options = [
                 (("--refresh",), {"action": "store_true", "default": False,
                                   "help": "Keep graphing forever, default False "}),
-                (("--refresh-freq",), {"action": "store", "type": "int", "default": 5,
-                                       "help": "Refresh frequency in seconds, default 5s"}),
+                (("--refresh-freq",), {"action": "store", "type": "int", "default": 10,
+                                       "help": "Refresh frequency in seconds, default 10s"}),
                 (("--plot-maxx",), {"action": "store", "type": "int", "default": None,
                                     "help": "Configure the maxium value X expected, otherwise the plot"+
                                     " will use the maxium value got by the time window" }),

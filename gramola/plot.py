@@ -64,7 +64,7 @@ class Plot(object):
             # remove the two lines used to render the plot by the
             # the previous call to refresh the plot using the
             # same console space
-            for i in range(0, self.rows+1):
+            for i in range(0, self.rows+2):
                 sys.stdout.write("\033[K")   # remove line
                 sys.stdout.write("\033[1A")  # up the cursor
 
@@ -88,7 +88,7 @@ class Plot(object):
                     sys.stdout.write(" ")
             sys.stdout.write("\n")
         sys.stdout.write("-"*self.width() + "\n")
-        sys.stdout.write("min={}, max={}, last={}".format(min(values), max(values), values[-1]))
+        sys.stdout.write("min={}, max={}, last={}\n".format(min(values), max(values), values[-1]))
         sys.stdout.flush()
         self.__drawn = True
 
