@@ -24,8 +24,8 @@ class TestGramolaDictionary(object):
         assert conf.banana == None
         assert conf.gramola == None
         assert conf.dumps() == json.dumps({'name': 'hellow', 'foo': 1, 'bar': 2})
-        assert ChildConfig.optional_keys() == ('bar', 'gramola', 'banana')
-        assert ChildConfig.required_keys() == ('foo', 'name')
+        assert ChildConfig.optional_keys() == ('banana', 'gramola', 'bar')
+        assert ChildConfig.required_keys() == ('name', 'foo')
 
         ChildConfig.loads(json.dumps({'name': 'hellow', 'foo': 1, 'bar': 2}))
 

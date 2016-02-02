@@ -25,15 +25,16 @@ import sys
 import optparse
 import sparkline
 
+from time import sleep
 from json import loads
 
 from gramola import log
+from gramola.plot import Plot, DEFAULT_ROWS
 from gramola.store import (
     Store,
     NotFound,
     DuplicateEntry
 )
-
 from gramola.contrib.subcommand import (
     Subcommand,
     SubcommandsOptionParser
@@ -302,23 +303,22 @@ class DataSourceListCommand(GramolaCommand):
             print("Datasource `{}` ({})".format(datasource.name, datasource.type))
 
 
-def build_datasource_query_type(datasource):
+def build_datasource_query_type(datasource_cls):
     """
-    Build the query command for one type of datasource, it turns out
+    Build the query command for one type of datasource_cls, it turns out
     in a new command named as query-<type>.
     """
 
     class QueryCommand(GramolaCommand):
-        NAME = 'query-{}'.format(datasource.TYPE)
+        NAME = 'query-{}'.format(datasource_cls.TYPE)
         DESCRIPTION = 'Query for a specific metric.'
         USAGE = '%prog {}'.format(" ".join(
             ['DATASOURCE_NAME'] +
-            [s.upper() for s in datasource.METRIC_QUERY_CLS.required_keys()]))
+            [s.upper() for s in datasource_cls.METRIC_QUERY_CLS.required_keys()]))
 
         @staticmethod
         def execute(options, suboptions, *subargs):
-            """ Runs a query using a datasource and print it as a char graphic.
-            """
+            """ Runs a query using a datasource_cls and prints it as a char graphic."""
             try:
                 name = subargs[0]
             except IndexError:
@@ -337,30 +337,45 @@ def build_datasource_query_type(datasource):
 
             query_params = {
                 k: v for v, k in zip(subargs[1:],
-                                     datasource.METRIC_QUERY_CLS.required_keys())
+                                     datasource_cls.METRIC_QUERY_CLS.required_keys())
             }
 
             # set also the optional keys given as suboptional params
             query_params.update(**{str(k): getattr(suboptions, str(k))
                                 for k in filter(lambda k: getattr(suboptions, str(k)),
-                                datasource.METRIC_QUERY_CLS.optional_keys())})
+                                datasource_cls.METRIC_QUERY_CLS.optional_keys())})
 
             try:
-                query = datasource.METRIC_QUERY_CLS(**query_params)
+                query = datasource_cls.METRIC_QUERY_CLS(**query_params)
             except InvalidMetricQuery, e:
                 raise InvalidParams(e.errors)
 
             try:
-                datapoints = datasource(config).datapoints(query)
-                if datapoints:
-                    print(sparkline.sparkify([value for value, ts in datapoints]))
+                datasource = datasource_cls(config)
             except InvalidDataSourceConfig, e:
                 print("Datasource config invalid {}".format(e.errors), file=sys.stderr)
+            else:
+                plot = Plot(max_x=suboptions.plot_maxx)
+                while plot.draw(datasource.datapoints(query, maxdatapoints=plot.width)):
+                    if not suboptions.refresh:
+                        break
+                    sleep(int(suboptions.refresh_freq))
 
         @staticmethod
         def options():
             # Command Options
-            command_options = []
+            command_options = [
+                (("--refresh",), {"action": "store_true", "default": False,
+                                  "help": "Keep graphing forever, default False "}),
+                (("--refresh-freq",), {"action": "store", "type": "int", "default": 5,
+                                       "help": "Refresh frequency in seconds, default 5s"}),
+                (("--plot-maxx",), {"action": "store", "type": "int", "default": None,
+                                    "help": "Configure the maxium value X expected, otherwise the plot"+
+                                    " will use the maxium value got by the time window" }),
+                (("--plot-rows",), {"action": "store", "type": "int", "default": DEFAULT_ROWS,
+                                    "help": "Configure the maxium value X expected, otherwise the plot"+
+                                    " will use the maxium value got by the time window" }),
+            ]
 
             # Datasource Options
             datasource_options = [

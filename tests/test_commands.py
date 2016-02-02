@@ -187,16 +187,18 @@ class TestDataSourceList(object):
 
 class TestQueryCommand(object):
     @patch("gramola.commands.sys")
-    def test_execute_stdin(self, sys_patched, empty_options, empty_suboptions, test_data_source):
+    @patch("gramola.commands.Plot")
+    def test_execute_stdin(self, plot_patched, sys_patched, empty_options, empty_suboptions, test_data_source):
+        empty_suboptions.refresh = False
+        datapoints = [(1, 0), (2, 1), (3, 1)]
         buffer_ = dumps({'type': 'test', 'name': 'stdout', 'foo': 1, 'bar': 1})
         sys_patched.stdin.read.return_value = buffer_
 
-        test_data_source.datapoints.return_value = [(1, 0), (2, 1), (3, 1)]
-
+        test_data_source.datapoints.return_value = datapoints
+ 
         command = build_datasource_query_type(test_data_source)
-        with patch("__builtin__.print") as print_patched:
-            command.execute(empty_options, empty_suboptions, "-", "foo", "-1d", "now")
-            print_patched.assert_called_with(sparkline.sparkify([1, 2, 3]))
+        command.execute(empty_options, empty_suboptions, "-", "foo", "-1d", "now")
+        plot_patched.return_value.draw.assert_called_with(datapoints)
 
         test_data_source.datapoints.assert_call_with(
             test_data_source.METRIC_QUERY_CLS(metric='foo', since='-1d', until='now')
