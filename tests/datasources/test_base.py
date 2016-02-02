@@ -9,6 +9,7 @@ from gramola.datasources.base import (
     InvalidMetricQuery
 )
 
+
 class TestOptionalKey(object):
     def test_interface(self):
         option = OptionalKey("field", "description")
@@ -45,7 +46,7 @@ class TestMetricQuery(object):
         class TestQuery(MetricQuery):
             REQUIRED_KEYS = ('from_', 'to')
 
-        query = TestQuery(**{'metric': 'cpu', 'from_': 1 , 'to': 2})
+        query = TestQuery(**{'metric': 'cpu', 'from_': 1, 'to': 2})
         assert query.metric == 'cpu'
         assert query.from_ == 1
         assert query.to == 2
@@ -69,3 +70,15 @@ class TestDataSource(object):
 
         with pytest.raises(KeyError):
             DataSource.find('foo')
+
+    def test_datapoints(self):
+        class TestDataSource(DataSource):
+            TYPE = 'test_find'
+
+            def datapoints(self, query, maxdatapoints=None):
+                return query, maxdatapoints
+
+        query = 1
+        maxdatapoints = 2
+        assert TestDataSource(None).datapoints(query, maxdatapoints=maxdatapoints) ==\
+            (query, maxdatapoints)

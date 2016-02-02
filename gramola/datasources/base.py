@@ -184,7 +184,7 @@ class DataSource(object):
         """
         return []
 
-    def datapoints(self, query):
+    def datapoints(self, query, maxdatapoints=None):
         """ This function is used to pick up a set of datapoints
         from the data source configured.
 
@@ -193,6 +193,7 @@ class DataSource(object):
 
         :param configuration: Query
         :type configuration: `MetricQuery` or a derivated one
+        :param maxdatapoints: Restrict the result with a certain amount of datapoints, default All
         :rtype: list, or None when where datapoints were not found.
         """
         raise NotImplemented()
