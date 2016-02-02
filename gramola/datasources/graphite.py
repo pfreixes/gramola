@@ -93,7 +93,7 @@ class GraphiteDataSource(DataSource):
         }
 
         if maxdatapoints:
-            params['maxdatapoints'] = maxdatapoints
+            params['maxDataPoints'] = maxdatapoints
 
         if self.configuration.url[-1] != '/':
             url = self.configuration.url + '/render' 
@@ -105,7 +105,7 @@ class GraphiteDataSource(DataSource):
         if response is None:
             return []
         elif len(response) == 0:
-            log.warning('Metric {} not found'.format(query.name))
+            log.warning('Metric `{}` not found'.format(query.metric))
             return []
         elif len(response) > 1:
             log.warning('Multiple metrics found, geting only the first one')
@@ -113,10 +113,9 @@ class GraphiteDataSource(DataSource):
         # Graphite returns a list of lists, we turn it into a list of tuples to
         # make it compatible with the datapoints return type.
 
-        # FIXME: Gramola not supports None values because of sparklines has not
-        # support. For now, unitil it will be fixed we change None values from None
+        # FIXME: Gramola not supports None values because we change None values from None
         # to 0.
-        return [(col[0] or 0, col[1]) for col in response[0]["datapoints"] if col[0]]
+        return [(col[0] or 0, col[1]) for col in response[0]["datapoints"]]
  
 
     def test(self):
