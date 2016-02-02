@@ -71,6 +71,11 @@ class Plot(object):
         # FIXME: nowadays Gramola supports only integer values
         values = [int(value) for value, ts in datapoints or [0]]
 
+        if len(values) < self.width():
+            # padding the queue of the values with 0 to align
+            # the graphic with the right corner of the screen
+            values = ([0]*(self.width() - len(values))) + values
+
         # find the right division value
         max_x = self.max_x or max(values)
         divide_by = next(dropwhile(lambda i: max_x / i > self.rows, range(1, max_x)))

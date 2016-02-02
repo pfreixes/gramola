@@ -45,18 +45,16 @@ MAXX_ROWS_FIXTURE = [
 # values given to the Plot to get the graph below
 [(10, 1), (50, 1), (10, 1), (10, 1)], 
 # grap expected
-"""           
-    
-    
-    
- *        
- *        
- *        
- *        
- *        
-****      
+"""          
+          
+                 
+        * 
+        * 
+        * 
+        * 
+       ****      
 -----------
-min=10, max=50, last=100"""
+min=0, max=50, last=10"""
 ]
 
 
@@ -87,4 +85,5 @@ class TestPlotDrawing(object):
         plot.draw(MAXX_ROWS_FIXTURE[0])
         sys_patched.stdout.seek(0)
         output = sys_patched.stdout.read()
+        print output
         assert sys_patched.stdout.read() == MAXX_ROWS_FIXTURE[1]
