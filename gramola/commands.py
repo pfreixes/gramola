@@ -356,7 +356,8 @@ def build_datasource_query_type(datasource_cls):
                 print("Datasource config invalid {}".format(e.errors), file=sys.stderr)
             else:
                 plot = Plot(max_x=suboptions.plot_maxx)
-                while plot.draw(datasource.datapoints(query, maxdatapoints=plot.width)):
+                while True:
+                    plot.draw(datasource.datapoints(query, maxdatapoints=plot.width()))
                     if not suboptions.refresh:
                         break
                     sleep(int(suboptions.refresh_freq))
@@ -380,7 +381,7 @@ def build_datasource_query_type(datasource_cls):
             # Datasource Options
             datasource_options = [
                 ((option.hyphen_name,), {"dest": option.name, "help": option.description})
-                for option in datasource.METRIC_QUERY_CLS.optional_keys()]
+                for option in datasource_cls.METRIC_QUERY_CLS.optional_keys()]
 
             return command_options + datasource_options
 
