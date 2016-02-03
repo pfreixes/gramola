@@ -3,15 +3,15 @@
 Implements the ploting module to render the graphic over the console using a graphic
 like the following one:
 
-+                *                   *
-+                **                  **
-+           *    ***                 **
-+          ***   ****                ***
-+ *       ****   *****          **   ****
-+ **    ******   *******       ****  *****
-+***   ********************   *****  ******
-+*******************************************
-+-------------------------------------------
+|                *                   *
+|                **                  **
+|           *    ***                 **
+|          ***   ****                ***
+| *       ****   *****          **   ****
+| **    ******   *******       ****  *****
+|***   ********************   *****  ******
+|*******************************************
++---+---+---+---+---+---+---+---+---+--+---+
 min=1, max=34, last=2
 
 The plot is rendred using 10 rows, it means that all datapoints that have to be displayed
@@ -39,7 +39,7 @@ import sys
 
 from itertools import dropwhile
 
-DEFAULT_ROWS = 10
+DEFAULT_ROWS = 8
 
 
 class Plot(object):
@@ -51,7 +51,9 @@ class Plot(object):
 
     def width(self):
         width, _ = getTerminalSize()
-        return width
+
+        # the plot needs the first column
+        return (width - 1)
 
     def draw(self, datapoints):
         """ Render using the the datapoints given as a parameters, Gramola
@@ -81,13 +83,20 @@ class Plot(object):
         divide_by = next(dropwhile(lambda i: max_x / i > self.rows, range(1, max_x)))
 
         for row in range(self.rows, 0, -1):
+            sys.stdout.write("|")
             for v in values:
                 if v / divide_by >= row:
                     sys.stdout.write("*")
                 else:
                     sys.stdout.write(" ")
             sys.stdout.write("\n")
-        sys.stdout.write("-"*self.width() + "\n")
+
+        if self.width() / 4.0 == 0:
+            extra = ""
+        else:
+            extra = "-"*(self.width() % 4)
+
+        sys.stdout.write("+"+"---+"*(self.width()/4) + extra + "\n")
         sys.stdout.write("min={}, max={}, last={}\n".format(min(values), max(values), values[-1]))
         sys.stdout.flush()
         self.__drawn = True

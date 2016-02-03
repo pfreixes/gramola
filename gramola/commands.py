@@ -360,7 +360,10 @@ def build_datasource_query_type(datasource_cls):
                     plot.draw(datasource.datapoints(query, maxdatapoints=plot.width()))
                     if not suboptions.refresh:
                         break
-                    sleep(int(suboptions.refresh_freq))
+                    try:
+                        sleep(int(suboptions.refresh_freq))
+                    except KeyboardInterrupt:
+                        break
 
         @staticmethod
         def options():
