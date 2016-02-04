@@ -80,7 +80,11 @@ class Plot(object):
 
         # find the right division value
         max_x = self.max_x or max(values)
-        divide_by = next(dropwhile(lambda i: max_x / i > self.rows, range(1, max_x)))
+        if max_x == 0:
+            # Edge case where all values are 0
+            divide_by = self.rows
+        else:
+            divide_by = next(dropwhile(lambda i: max_x / i > self.rows, range(1, max_x)))
 
         for row in range(self.rows, 0, -1):
             sys.stdout.write("|")
