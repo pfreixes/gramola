@@ -117,6 +117,23 @@ class TestDatapoints(object):
                     'format':'json'}
         )
 
+    def test_query_remove_last_None(self, prequests, config):
+        response = Mock()
+        response.status_code = 200
+        response.json.return_value = [{
+            'target': 'foo.bar',
+            'datapoints': [[1, 1451391760], [None, 1451391770]]
+        }]
+        prequests.get.return_value = response
+        graphite = GraphiteDataSource(config)
+
+        # build the mvp of query to be filled with the default ones
+        query = GraphiteDataSource.METRIC_QUERY_CLS(**{
+            'metric': 'foo.bar'
+        })
+
+        assert graphite.datapoints(query) == [(1, 1451391760)]
+
     def test_requests_exception(self, prequests, config, query):
         prequests.get.side_effect = RequestException()
         graphite = GraphiteDataSource(config)

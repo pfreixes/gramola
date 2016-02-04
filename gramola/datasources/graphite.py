@@ -110,12 +110,22 @@ class GraphiteDataSource(DataSource):
         elif len(response) > 1:
             log.warning('Multiple metrics found, geting only the first one')
 
+        # Grahpite allocate values automatically to a each bucket of time, storage schema, the
+        # Last value can become Null until a new value arrive for the last bucket, we prefer
+        # drop this last value if it is Null, waiting for when the real value is available or
+        # the Null is confirmed because it keeps there.
+        if not response[0]["datapoints"][-1][0]:
+            response[0]["datapoints"].pop(len(response[0]["datapoints"])-1)
+
         # Graphite returns a list of lists, we turn it into a list of tuples to
         # make it compatible with the datapoints return type.
 
         # FIXME: Gramola not supports None values because we change None values from None
-        # to 0.
-        return [(col[0] or 0, col[1]) for col in response[0]["datapoints"]]
+        # to 0.0
+        values = [(col[0] or 0, col[1]) for col in response[0]["datapoints"]]
+
+        return values
+
  
 
     def test(self):
