@@ -222,20 +222,20 @@ def build_datasource_echo_type(datasource):
     return DataSourceEchoCommand
 
 
-def build_datasource_add_type(datasource):
+def build_datasource_add_type(datasource_cls):
     """
     Build the datasource-add command for one type of datasource, it turns out
     in a new command named as datasource-add-<type>.
     """
     class DataSourceAddCommand(GramolaCommand):
-        NAME = 'datasource-add-{}'.format(datasource.TYPE)
-        DESCRIPTION = 'Add a datasource {} configuration'.format(datasource.TYPE)
+        NAME = 'datasource-add-{}'.format(datasource_cls.TYPE)
+        DESCRIPTION = 'Add a datasource {} configuration'.format(datasource_cls.TYPE)
 
         # All datasources inherited the `type` and the `name` fields as a
         # required params, typed commands have already the type and they are
         # removed as command args. And in the Echo case also the name.
         USAGE = '%prog {}'.format(" ".join(
-            [s.upper() for s in datasource.DATA_SOURCE_CONFIGURATION_CLS.required_keys() if
+            [s.upper() for s in datasource_cls.DATA_SOURCE_CONFIGURATION_CLS.required_keys() if
                 s not in ['type']]))
 
         @staticmethod
@@ -244,22 +244,27 @@ def build_datasource_add_type(datasource):
             datasource_params = {
                 # Type is a required param that is coupled with
                 # with the command.
-                'type': datasource.TYPE,
+                'type': datasource_cls.TYPE,
             }
 
             datasource_params.update(
                 {k: v for v, k in
                     zip(subargs,
                         filter(lambda k: k not in ['type'],
-                               datasource.DATA_SOURCE_CONFIGURATION_CLS.required_keys()))}
+                               datasource_cls.DATA_SOURCE_CONFIGURATION_CLS.required_keys()))}
             )
 
+            # set also the optional keys given as suboptional params
+            datasource_params.update(**{str(k): getattr(suboptions, str(k))
+                                for k in filter(lambda k: getattr(suboptions, str(k)),
+                                datasource_cls.DATA_SOURCE_CONFIGURATION_CLS.optional_keys())})
+
             try:
-                config = datasource.DATA_SOURCE_CONFIGURATION_CLS(**datasource_params)
+                config = datasource_cls.DATA_SOURCE_CONFIGURATION_CLS(**datasource_params)
             except InvalidDataSourceConfig, e:
                 raise InvalidParams(e.errors)
 
-            ds = datasource(config)
+            ds = datasource_cls(config)
             if not suboptions.no_test and not ds.test():
                 # only save if the test passes
                 print("Data source test failed, might the service not being unavailable ?")
@@ -283,7 +288,7 @@ def build_datasource_add_type(datasource):
             # Datasource Options
             datasource_options = [
                 ((option.hyphen_name,), {"dest": option.name, "help": option.description})
-                for option in datasource.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()]
+                for option in datasource_cls.DATA_SOURCE_CONFIGURATION_CLS.optional_keys()]
 
             return command_options + datasource_options
 
