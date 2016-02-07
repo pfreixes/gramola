@@ -17,6 +17,8 @@ from gramola.datasources.base import (
     DataSourceConfig
 )
 
+DATE_FORMAT = "%H:%M_%y%m%d"
+
 
 class GraphiteDataSourceConfig(DataSourceConfig):
     REQUIRED_KEYS = ('url',)
@@ -25,15 +27,12 @@ class GraphiteDataSourceConfig(DataSourceConfig):
 
 class GraphiteMetricQuery(MetricQuery):
     REQUIRED_KEYS = ()
-    OPTIONAL_KEYS = (
-        OptionalKey('since', 'Get values from, default -1h'),
-        OptionalKey('until', 'Get values until, default now')
-    )
+    OPTIONAL_KEYS = ()
 
 
 class GraphiteDataSource(DataSource):
     DATA_SOURCE_CONFIGURATION_CLS = GraphiteDataSourceConfig
-    METRIC_QUERY_CLS = GraphiteMetricQuery 
+    METRIC_QUERY_CLS = GraphiteMetricQuery
     TYPE = 'graphite'
 
     def _safe_request(self, url, params):
@@ -45,11 +44,10 @@ class GraphiteDataSource(DataSource):
             return None
 
         if response.status_code != 200:
-            log.warning("Get a invalid {} HTTP code from Grahpite service".format(response.status_code))
+            log.warning("Get an invalid {} HTTP code from Grahpite".format(response.status_code))
             return None
 
         return response.json()
-
 
     def suggestions(self, current, key='name'):
         if key != 'name':
@@ -60,9 +58,9 @@ class GraphiteDataSource(DataSource):
         query = "*" if not current else current + "*"
 
         if self.configuration.url[-1] != '/':
-            url = self.configuration.url + '/metrics/find' 
+            url = self.configuration.url + '/metrics/find'
         else:
-            url = self.configuration.url + 'metrics/find' 
+            url = self.configuration.url + 'metrics/find'
 
         params = {'query': query}
 
@@ -71,7 +69,6 @@ class GraphiteDataSource(DataSource):
             return []
 
         return [path['text'] for path in response]
-        
 
     def datapoints(self, query, maxdatapoints=None):
         # Graphite publisheds the endpoint `/render` to retrieve
@@ -81,12 +78,8 @@ class GraphiteDataSource(DataSource):
 
         params = {
             'target': query.metric,
-
-            # default window timme used if no params given
-            # is datapoints from the last 1 hour
-            'from': query.since or '-1h',
-            'to': query.until or 'now',
-
+            'from': query.get_since().strftime(DATE_FORMAT),
+            'to': query.get_until().strftime(DATE_FORMAT),
             # graphite supports mulitple output format, we have
             # to configure the json output
             'format': 'json'
@@ -96,8 +89,8 @@ class GraphiteDataSource(DataSource):
             params['maxDataPoints'] = maxdatapoints
 
         if self.configuration.url[-1] != '/':
-            url = self.configuration.url + '/render' 
-        else: 
+            url = self.configuration.url + '/render'
+        else:
             url = self.configuration.url + 'render'
 
         response = self._safe_request(url, params)
@@ -126,11 +119,9 @@ class GraphiteDataSource(DataSource):
 
         return values
 
- 
-
     def test(self):
         # test using the metrics find endpoint
-        url = self.configuration.url + '/metrics/find' 
+        url = self.configuration.url + '/metrics/find'
         try:
             response = requests.get(url, params={'query': '*'})
         except RequestException, e:

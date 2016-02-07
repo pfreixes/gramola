@@ -7,6 +7,9 @@ Utils used arround the Gramola project.
 import json
 
 from itertools import chain
+from datetime import datetime
+from datetime import timedelta
+
 
 class InvalidGramolaDictionary(Exception):
     """ Exception raised when the keys given to one GramolaDictionary instance
@@ -22,14 +25,14 @@ class InvalidGramolaDictionary(Exception):
 
 
 class GramolaDictionary(object):
-    """ 
+    """
     Implements a dictionary store with a interface to declare the allowable
     keys, either required or optional.
 
-    Each derivated implementation of GramolaDictionary can configure the 
+    Each derivated implementation of GramolaDictionary can configure the
     required keys using the REQUIRED_KEYS attribute and the optional keys
-    using OPTIONAL_KEYS attribute. These params will be concatenated with 
-    the params defined by the base class. 
+    using OPTIONAL_KEYS attribute. These params will be concatenated with
+    the params defined by the base class.
 
     As the required keys and the optional keys are automatically published
     as properties, for these optional keys that are not given a None value
@@ -69,7 +72,7 @@ class GramolaDictionary(object):
             # as a properties. i.e conf.name
             for attr in chain(cls.required_keys(), cls.optional_keys()):
                 setattr(
-                    cls, 
+                    cls,
                     str(attr),  # required for non string objects
                     property(lambda self, a=attr: self._dict.get(a, None))
                 )
@@ -80,21 +83,20 @@ class GramolaDictionary(object):
 
         :param kwargs: key, value pairs used for this configuration.
         :type kwargs: dict.
-        :raises : InvalidDataSourceConfig. 
+        :raises : InvalidDataSourceConfig.
         """
         # check that the keys given as a confiugaration keys are allowed either because
         # are required or optional.
         allowed_keys = self.required_keys() + self.optional_keys()
         if filter(lambda k: k not in allowed_keys, kwargs):
             raise InvalidGramolaDictionary(
-                {k:'Key not expected' for k in
+                {k: 'Key not expected' for k in
                     filter(lambda k: k not in allowed_keys, kwargs)})
 
-        
         # all required keys have to be given
         if filter(lambda k: k not in kwargs, self.required_keys()):
             raise InvalidGramolaDictionary(
-                {k:'Key missing' for k in
+                {k: 'Key missing' for k in
                     filter(lambda k: k not in kwargs, self.required_keys())})
 
         self._dict = kwargs
@@ -116,7 +118,7 @@ class GramolaDictionary(object):
     def loads(cls, buffer_):
         """ Return a instancia of cls using the JSON buffer_ as a kwargs
         for the constructor.
-     
+
         :param buffer_: str.
         """
         return cls(**json.loads(buffer_))
@@ -142,3 +144,58 @@ class GramolaDictionary(object):
         # have to seen inside out, lets return from button
         # to top
         return tuple(v for v in reversed(values))
+
+
+class DateTimeInvalidValue(Exception):
+    pass
+
+
+def parse_date(date_value):
+    """ Parse a date_value expecting at least one of the following
+    formats, otherwise it raises a DateTimeInvalidValue.
+
+        timestamp format: 1454867898
+        iso8601 format  : 2016-02-06T20:37:47
+        human format    : -1h, -5min, 10d, now, ...
+                          ([|-](integer)[h|min|s|d]|now)
+
+    :param date_value: str
+    :return: datetime
+    """
+    try:
+        return datetime.strptime(date_value, "%Y-%m-%dT%H:%M:%S")
+    except ValueError:
+        try:
+            return datetime.fromtimestamp(float(date_value))
+        except ValueError:
+            try:
+                if date_value == 'now':
+                    return datetime.now()
+                elif date_value.find("h") != -1:
+                    v = date_value.split("h")[0]
+                    if v[0] == '-':
+                        return datetime.now() - timedelta(hours=int(v[1:]))
+                    else:
+                        return datetime.now() + timedelta(hours=int(v))
+                elif date_value.find("min") != -1:
+                    v = date_value.split("min")[0]
+                    if v[0] == '-':
+                        return datetime.now() - timedelta(minutes=int(v[1:]))
+                    else:
+                        return datetime.now() + timedelta(minutes=int(v))
+                elif date_value.find("s") != -1:
+                    v = date_value.split("s")[0]
+                    if v[0] == '-':
+                        return datetime.now() - timedelta(seconds=int(v[1:]))
+                    else:
+                        return datetime.now() + timedelta(seconds=int(v))
+                elif date_value.find("d") != -1:
+                    v = date_value.split("d")[0]
+                    if v[0] == '-':
+                        return datetime.now() - timedelta(days=int(v[1:]))
+                    else:
+                        return datetime.now() + timedelta(days=int(v))
+                raise DateTimeInvalidValue()
+            except ValueError:
+                raise DateTimeInvalidValue()
+    return data_value

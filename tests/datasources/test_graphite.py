@@ -3,12 +3,15 @@ import pytest
 from mock import patch, Mock
 from requests.exceptions import RequestException
 
+from gramola.utils import parse_date
 from gramola.datasources.graphite import (
+    DATE_FORMAT,
     GraphiteDataSource,
     GraphiteMetricQuery
 )
 
 REQUESTS = 'gramola.datasources.graphite.requests'
+
 
 @pytest.fixture
 def config():
@@ -18,23 +21,24 @@ def config():
         'url': 'http://localhost:9000'
     })
 
+
 @patch(REQUESTS)
 class TestSuggestions(object):
     def test_name_suggestion(self, prequests, config):
         response = Mock()
         response.status_code = 200
-        response.json.return_value = [{'text': 'foo'}, {'text':'bar'}]
+        response.json.return_value = [{'text': 'foo'}, {'text': 'bar'}]
         prequests.get.return_value = response
         graphite = GraphiteDataSource(config)
         assert graphite.suggestions(None) == ['foo', 'bar']
         prequests.get.assert_called_with(
             'http://localhost:9000/metrics/find',
-            params={'query':'*'})
+            params={'query': '*'})
 
         assert graphite.suggestions('suffix') == ['foo', 'bar']
         prequests.get.assert_called_with(
             'http://localhost:9000/metrics/find',
-            params={'query':'suffix*'})
+            params={'query': 'suffix*'})
 
     def test_requests_exception(self, prequests, config):
         prequests.get.side_effect = RequestException()
@@ -74,7 +78,6 @@ class TestDatapoints(object):
             'until': '-12h'
         })
 
-
     def test_query(self, prequests, config, query):
         response = Mock()
         response.status_code = 200
@@ -88,9 +91,9 @@ class TestDatapoints(object):
         prequests.get.assert_called_with(
             'http://localhost:9000/render',
             params={'target': 'foo.bar',
-                    'from': '-24h',
-                    'to': '-12h',
-                    'format':'json'}
+                    'from': parse_date('-24h').strftime(DATE_FORMAT),
+                    'to': parse_date('-12h').strftime(DATE_FORMAT),
+                    'format': 'json'}
         )
 
     def test_query_default_values(self, prequests, config):
@@ -112,9 +115,9 @@ class TestDatapoints(object):
         prequests.get.assert_called_with(
             'http://localhost:9000/render',
             params={'target': 'foo.bar',
-                    'from': '-1h',
-                    'to': 'now',
-                    'format':'json'}
+                    'from': parse_date('-1h').strftime(DATE_FORMAT),
+                    'to': parse_date('now').strftime(DATE_FORMAT),
+                    'format': 'json'}
         )
 
     def test_query_remove_last_None(self, prequests, config):

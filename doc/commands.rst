@@ -128,15 +128,26 @@ The plot options supported are:
   * **--plot-maxx** Give to the plot the maxium X value expected, otherwhise it will be relative to each query result.
   * **--plot-rows** Renderize the plot using a certain amount of rows, by default 8 rows.
 
-Once the plot options has been given the command accepts also those optional params regarding each time serie
-data base, to get more info about each param supported by each time serie data base just take a look to the last
-section.
+Once the plot options has been given the command accepts either those optional params regarding each time serie
+data base or those that are shared between all command args, to get more info about each param supported by
+each time serie data base just take a look to the last section.
+
+As a query options shared between all commands there is the *since* and the *until* options, both of them can be
+used by all query commands. If they are not given they will take their default values, **-1h** for the *since*
+param and **now** for the *until* param. It means that the query window time will involve the last hour.
+
+Both options support different value formats as the following list describes:
+
+    * **timestamp** A timestamp value such as *1454872083*
+    * **iso8601** A datetime value that follows the ISO-8601 format such as *2016-02-15T23:59:59*
+    * **now** Means the curent time.
+    * **relative datetimes** A realative date time using the format *-(X)[min|h|d]* such as *-1min, -2h, 31d, ..*
 
 As a mandatory arguments, a query command needs the name of the datasource to be used, the name of the metric to
 query and at last other mandatory query arguments regarding the time serie data base.
 
 The following snippet shows one example of the *query-graphite* command running a query to get the CPU load of a
-specific webserver. 
+specific webserver for the last one hour.
 
 
 .. code-block:: bash

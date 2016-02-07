@@ -10,7 +10,8 @@ specific configurations.
 
 from gramola.utils import (
     InvalidGramolaDictionary,
-    GramolaDictionary
+    GramolaDictionary,
+    parse_date
 )
 
 
@@ -98,7 +99,12 @@ class MetricQuery(GramolaDictionary):
     MetricQuery implements the following keys : metric.
     """
     REQUIRED_KEYS = ('metric',)
-    OPTIONAL_KEYS = ()  # tuple of OptionalKey values.
+
+    # All Queries use the since, and until optional parameters.
+    OPTIONAL_KEYS = (
+        OptionalKey('since', 'Get values from, default -1h'),
+        OptionalKey('until', 'Get values until, default now')
+    )
 
     def __init__(self, *args, **kwargs):
         """
@@ -108,6 +114,18 @@ class MetricQuery(GramolaDictionary):
             super(MetricQuery, self).__init__(*args, **kwargs)
         except InvalidGramolaDictionary, e:
             raise InvalidMetricQuery(e.errors)
+
+    def get_since(self):
+        """ Returns the date time used to collect data from
+        :return: datetime
+        """
+        return parse_date(self.since or '-1h')
+
+    def get_until(self):
+        """ Returns the date time used to collect data until
+        :return: datetime
+        """
+        return parse_date(self.until or 'now')
 
 
 class DataSource(object):
