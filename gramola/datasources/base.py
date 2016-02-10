@@ -96,9 +96,9 @@ class MetricQuery(GramolaDictionary):
     MetricQuery class configuring the required keys using the
     REQUIRED_KEYS and the optional keys uing OPTIONAL_KEYS.
 
-    MetricQuery implements the following keys : metric.
+    MetricQuery implements the following keys : since, until.
     """
-    REQUIRED_KEYS = ('metric',)
+    REQUIRED_KEYS = ()
 
     # All Queries use the since, and until optional parameters.
     OPTIONAL_KEYS = (

@@ -26,7 +26,7 @@ class GraphiteDataSourceConfig(DataSourceConfig):
 
 
 class GraphiteMetricQuery(MetricQuery):
-    REQUIRED_KEYS = ()
+    REQUIRED_KEYS = ('target',)
     OPTIONAL_KEYS = ()
 
 
@@ -77,7 +77,7 @@ class GraphiteDataSource(DataSource):
         # rendering of one target.
 
         params = {
-            'target': query.metric,
+            'target': query.target,
             'from': query.get_since().strftime(DATE_FORMAT),
             'to': query.get_until().strftime(DATE_FORMAT),
             # graphite supports mulitple output format, we have
@@ -98,10 +98,10 @@ class GraphiteDataSource(DataSource):
         if response is None:
             return []
         elif len(response) == 0:
-            log.warning('Metric `{}` not found'.format(query.metric))
+            log.warning('Metric `{}` not found'.format(query.target))
             return []
         elif len(response) > 1:
-            log.warning('Multiple metrics found, geting only the first one')
+            log.warning('Multiple targets found, geting only the first one')
 
         # Grahpite allocate values automatically to a each bucket of time, storage schema, the
         # Last value can become Null until a new value arrive for the last bucket, we prefer

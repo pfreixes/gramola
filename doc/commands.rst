@@ -143,12 +143,11 @@ Both options support different value formats as the following list describes:
     * **now** Means the curent time.
     * **relative datetimes** A realative date time using the format *-(X)[min|h|d]* such as *-1min, -2h, 31d, ..*
 
-As a mandatory arguments, a query command needs the name of the datasource to be used, the name of the metric to
-query and at last other mandatory query arguments regarding the time serie data base.
+As a mandatory arguments, a query command needs the name of the datasource to be used and other mandatory query
+arguments regarding the time serie data base.
 
 The following snippet shows one example of the *query-graphite* command running a query to get the CPU load of a
 specific webserver for the last one hour.
-
 
 .. code-block:: bash
 
