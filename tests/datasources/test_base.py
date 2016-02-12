@@ -44,7 +44,7 @@ class TestMetricQuery(object):
 
     def test_interface(self):
         class TestQuery(MetricQuery):
-            REQUIRED_KEYS = ('from_', 'to')
+            REQUIRED_KEYS = ('metric', 'from_', 'to')
 
         query = TestQuery(**{'metric': 'cpu', 'from_': 1, 'to': 2})
         assert query.metric == 'cpu'
@@ -53,7 +53,7 @@ class TestMetricQuery(object):
 
     def test_custom_raises(self):
         class TestQuery(MetricQuery):
-            pass
+            REQUIRED_KEYS = ('metric',)
 
         # requires the metric key
         with pytest.raises(InvalidMetricQuery):

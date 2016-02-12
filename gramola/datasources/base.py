@@ -66,7 +66,7 @@ class DataSourceConfig(GramolaDictionary):
     All DataSourceConfig implementation will have at least the following
     keys: name.
     """
-    REQUIRED_KEYS = ('type', 'name',)
+    REQUIRED_KEYS = ('type', 'name')
     OPTIONAL_KEYS = ()  # tuple of OptionalKey values.
 
     def __init__(self, *args, **kwargs):
@@ -209,8 +209,11 @@ class DataSource(object):
         The `query` object holds the query params given by the user, is
         a instance, if if is not override, of the `DataSource.METRIC_QUERY_CLS`
 
-        :param configuration: Query
-        :type configuration: `MetricQuery` or a derivated one
+        Example of the list of points returned by this method
+            [(val, ts), (val, ts) .....]
+
+        :param query: Query
+        :type query: `MetricQuery` or a derivated one
         :param maxdatapoints: Restrict the result with a certain amount of datapoints, default All
         :rtype: list, or None when where datapoints were not found.
         """

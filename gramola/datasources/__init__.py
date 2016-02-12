@@ -3,7 +3,9 @@
 :moduleauthor: Pau Freixes, pfreixes@gmail.com
 """
 from gramola.datasources.graphite import GraphiteDataSource
+from gramola.datasources.cloudwatch import CWDataSource
 
 IMPLEMENTATIONS = [
-    GraphiteDataSource
+    GraphiteDataSource,
+    CWDataSource
 ]

@@ -162,8 +162,8 @@ class TestDataSourceEcho(object):
         output = {
             'type': 'test',
             'name': 'stdout',
-            'bar': 1,
-            'foo': 2,
+            'foo': 1,
+            'bar': 2
         }
         command = build_datasource_echo_type(test_data_source)
         with patch("__builtin__.print") as print_patched:
@@ -188,14 +188,14 @@ class TestDataSourceList(object):
 class TestQueryCommand(object):
     @patch("gramola.commands.sys")
     @patch("gramola.commands.Plot")
-    def test_execute_stdin(self, plot_patched, sys_patched, empty_options, empty_suboptions, test_data_source):
+    def test_execute_stdin(self, plot_patched, sys_patched, empty_options, empty_suboptions,
+                           test_data_source):
         empty_suboptions.refresh = False
         datapoints = [(1, 0), (2, 1), (3, 1)]
         buffer_ = dumps({'type': 'test', 'name': 'stdout', 'foo': 1, 'bar': 1})
         sys_patched.stdin.read.return_value = buffer_
 
         test_data_source.datapoints.return_value = datapoints
- 
         command = build_datasource_query_type(test_data_source)
         command.execute(empty_options, empty_suboptions, "-", "foo", "-1d", "now")
         plot_patched.return_value.draw.assert_called_with(datapoints)

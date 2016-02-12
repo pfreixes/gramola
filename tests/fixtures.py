@@ -17,7 +17,8 @@ def test_data_source():
         OPTIONAL_KEYS = ('gramola',)
 
     class TestMetricQuery(MetricQuery):
-        REQUIRED_KEYS = ('since', 'until')
+        REQUIRED_KEYS = ('metric',)
+        OPTIONAL_KEYS = ('since', 'until')
 
     class TestDataSource(DataSource):
         TYPE = 'test'

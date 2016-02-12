@@ -71,7 +71,7 @@ class GraphiteDataSource(DataSource):
         return [path['text'] for path in response]
 
     def datapoints(self, query, maxdatapoints=None):
-        # Graphite publisheds the endpoint `/render` to retrieve
+        # Graphite publishes the endpoint `/render` to retrieve
         # datapoins from one or mulitple targets, we make sure that
         # only retrieve one target at once, Gramola supports only
         # rendering of one target.

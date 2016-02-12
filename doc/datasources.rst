@@ -37,7 +37,7 @@ Query
 +-----------------------------------+-----------------------------------------+
 | Param                             | Descripiton                             |
 +===================================+=========================================+
-| metric                            | Target                                  |
+| target                            | Target                                  |
 +-----------------------------------+-----------------------------------------+
 
 +-----------------------------------+-----------------------------------------+
@@ -51,6 +51,84 @@ Query
 
 CloudWatch
 -----------
+
+Datasource
+~~~~~~~~~~
+
++-----------------------------------+-----------------------------------------+
+| Param                             | Descripiton                             |
++===================================+=========================================+
+| type                              | Always get the `cw` value               |
++-----------------------------------+-----------------------------------------+
+| name                              | Name of the datasource                  |
++-----------------------------------+-----------------------------------------+
+
++-----------------------------------+-----------------------------------------+
+| Option                            | Descripiton                             |
++===================================+=========================================+
+| profile                           | Profile used insted of the default one, |
+|                                   | usually stored in the aws config files  |
+|                                   | ~/.aws/credentials and ~/.aws/config    |
++-----------------------------------+-----------------------------------------+
+| region                            | Region used insted of the default one   |
+|                                   | configured in the profile or if it is   |
+|                                   | given as query argument.                |
++-----------------------------------+-----------------------------------------+
+
+As an example the following command displays a CloudWatch datasource added to use
+a specific profile and specific region:
+
+.. code-block:: bash
+
+    $ gramola datasourc-add-cw --region=eu-west-1 --profile=sandbox "test environment"
+    Datasource `test environment` added
+ 
+Query
+~~~~~
+
++-----------------------------------+-----------------------------------------+
+| Param                             | Descripiton                             |
++===================================+=========================================+
+| metricspace                       | The metricspace name, ex: AWS/EC2       |
++-----------------------------------+-----------------------------------------+
+| metricname                        | The metrics name, ex: CPUUtilization    |
++-----------------------------------+-----------------------------------------+
+| dimensionname                     | Filter by this dimension name           |
++-----------------------------------+-----------------------------------------+
+| dimensionvalue                    | Filter by this dimension value          |
++-----------------------------------+-----------------------------------------+
+
++-----------------------------------+-----------------------------------------+
+| Option                            | Descripiton                             |
++===================================+=========================================+
+| since                             | Get values from, default -1h            |
++-----------------------------------+-----------------------------------------+
+| until                             | Get values until, default now           |
++-----------------------------------+-----------------------------------------+
+| region                            | Use another region instead of the       |
+|                                   | default one.                            |
++-----------------------------------+-----------------------------------------+
+| statistics                        | Use another Statistic instead of the    |
+|                                   | default one, values allowed : Average,  |
+|                                   | Sum, Maximum, Minimum, SampleCount      |
++-----------------------------------+-----------------------------------------+
+
+As an example the following command displays a query using a CloudWatch datasource where it get the CPU 
+utilitzation of a specific EC2 instance:
+
+.. code-block:: bash
+
+    $ gramola query-cw --plot-maxx=20 --since=-3h --until=-2h cw AWS/EC2 CPUUtilization InstanceId i-61cefbec 
+    |
+    |
+    |
+    |
+    |
+    |
+    |                                              **    *       *            **    *                      *
+    |                                             ************************************************************
+    +---+---+---+---+----+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+    min=0, max=6, last=5
 
 Opentsdb
 --------

@@ -73,7 +73,7 @@ class TestDatapoints(object):
     @pytest.fixture
     def query(self):
         return GraphiteDataSource.METRIC_QUERY_CLS(**{
-            'metric': 'foo.bar',
+            'target': 'foo.bar',
             'since': '-24h',
             'until': '-12h'
         })
@@ -108,7 +108,7 @@ class TestDatapoints(object):
 
         # build the mvp of query to be filled with the default ones
         query = GraphiteDataSource.METRIC_QUERY_CLS(**{
-            'metric': 'foo.bar'
+            'target': 'foo.bar'
         })
 
         assert graphite.datapoints(query) == [(1, 1451391760)]
@@ -132,7 +132,7 @@ class TestDatapoints(object):
 
         # build the mvp of query to be filled with the default ones
         query = GraphiteDataSource.METRIC_QUERY_CLS(**{
-            'metric': 'foo.bar'
+            'target': 'foo.bar'
         })
 
         assert graphite.datapoints(query) == [(1, 1451391760)]

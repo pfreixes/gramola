@@ -135,15 +135,13 @@ class GramolaDictionary(object):
 
     @classmethod
     def _pick_up_attr(cls, attr):
-        values = getattr(cls, attr)
+        class_values = getattr(cls, attr)
+        base_values = ()
         for base in cls.__bases__:
             if hasattr(base, '_pick_up_attr'):
-                values += base._pick_up_attr(attr)
+                base_values += base._pick_up_attr(attr)
 
-        # the values are picked up from top to button, they
-        # have to seen inside out, lets return from button
-        # to top
-        return tuple(v for v in reversed(values))
+        return base_values + class_values
 
 
 class DateTimeInvalidValue(Exception):
