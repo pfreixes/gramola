@@ -70,21 +70,25 @@ class Plot(object):
                 sys.stdout.write("\033[K")   # remove line
                 sys.stdout.write("\033[1A")  # up the cursor
 
-        # FIXME: nowadays Gramola supports only integer values
-        values = [int(value) for value, ts in datapoints or [0]]
+        if datapoints:
+            # FIXME: nowadays Gramola supports only integer values
+            values = [int(value) for value, ts in datapoints]
 
-        if len(values) < self.width():
-            # padding the queue of the values with 0 to align
-            # the graphic with the right corner of the screen
-            values = ([0]*(self.width() - len(values))) + values
+            if len(values) < self.width():
+                # padding the queue of the values with 0 to align
+                # the graphic with the right corner of the screen
+                values = ([0]*(self.width() - len(values))) + values
 
-        # find the right division value
-        max_x = self.max_x or max(values)
-        if max_x == 0:
-            # Edge case where all values are 0
-            divide_by = self.rows
+            # find the right division value
+            max_x = self.max_x or max(values)
+            if max_x == 0:
+                # Edge case where all values are 0
+                divide_by = self.rows
+            else:
+                divide_by = next(dropwhile(lambda i: max_x / i > self.rows, range(1, max_x)))
         else:
-            divide_by = next(dropwhile(lambda i: max_x / i > self.rows, range(1, max_x)))
+            values = [0]*self.width()
+            divide_by = self.rows
 
         for row in range(self.rows, 0, -1):
             sys.stdout.write("|")
@@ -101,7 +105,10 @@ class Plot(object):
             extra = "-"*(self.width() % 4)
 
         sys.stdout.write("+"+"---+"*(self.width()/4) + extra + "\n")
-        sys.stdout.write("min={}, max={}, last={}\n".format(min(values), max(values), values[-1]))
+        if datapoints:
+            sys.stdout.write("min={}, max={}, last={}\n".format(min(values), max(values), values[-1]))
+        else:
+            sys.stdout.write("no datapoints found ...\n")
         sys.stdout.flush()
         self.__drawn = True
 
