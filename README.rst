@@ -1,21 +1,12 @@
 Gramola
 =======
 
-**STILL IN DEVELOPING, comming soon.**
-
 Gramola is a console port of Grafana_ that uses console plots to render time series data points. Because sometimes we need
 a quick view of one metric for debuging propouses, or just because the numbers doesn't matter and our concern is about
 how the metric behaves, Gramola gives us a easy, fast and polyglot data source implementation to make it.
 
-Gramola main features can be resumed as:
-
-    * Support for multiple data sources : Graphite, OpenTSDB, CloudWatch, InfluxDB, Prometheus.
-    * Support for different outputs : sparkline, raw.
-    * Support for dashboards.
-    * Programatic access as a Python library.
-
-Install
--------
+Gramola spports data sources such as Graphite and CloudWatch, but other time series data bases can be implemented
+eaasly.
 
 Quick guide
 -----------
@@ -50,8 +41,3 @@ the following snippet shows:
 
 Then the data sources is always available and can be used to query your metrics. To get more info about Gramola and how 
 its features can be used read the full documentation `here <doc/index.rst>`_
-
-Developing
-----------
-
-.. _Grafana: http://grafana.org/

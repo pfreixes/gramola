@@ -23,37 +23,6 @@ def config():
 
 
 @patch(REQUESTS)
-class TestSuggestions(object):
-    def test_name_suggestion(self, prequests, config):
-        response = Mock()
-        response.status_code = 200
-        response.json.return_value = [{'text': 'foo'}, {'text': 'bar'}]
-        prequests.get.return_value = response
-        graphite = GraphiteDataSource(config)
-        assert graphite.suggestions(None) == ['foo', 'bar']
-        prequests.get.assert_called_with(
-            'http://localhost:9000/metrics/find',
-            params={'query': '*'})
-
-        assert graphite.suggestions('suffix') == ['foo', 'bar']
-        prequests.get.assert_called_with(
-            'http://localhost:9000/metrics/find',
-            params={'query': 'suffix*'})
-
-    def test_requests_exception(self, prequests, config):
-        prequests.get.side_effect = RequestException()
-        graphite = GraphiteDataSource(config)
-        assert graphite.suggestions(None) == []
-
-    def test_requests_exception(self, prequests, config):
-        response = Mock()
-        response.status_code = 500
-        prequests.get.return_value = response
-        graphite = GraphiteDataSource(config)
-        assert graphite.suggestions(None) == []
-
-
-@patch(REQUESTS)
 class TestTest(object):
     def test_requests_exception(self, prequests, config):
         prequests.get.side_effect = RequestException()

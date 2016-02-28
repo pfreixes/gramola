@@ -78,9 +78,6 @@ class CWDataSource(DataSource):
     def _cw_call(self, client, f, *args, **kwargs):
         return getattr(client, f)(*args, **kwargs)
 
-    def suggestions(self, current, key='name'):
-        raise NotImplemented()
-
     def datapoints(self, query, maxdatapoints=None):
         if query.statistics and (query.statistics not in ['Average', 'Sum', 'SampleCount',
                                                           'Maximum', 'Minimum']):

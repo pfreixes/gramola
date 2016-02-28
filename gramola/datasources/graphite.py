@@ -49,27 +49,6 @@ class GraphiteDataSource(DataSource):
 
         return response.json()
 
-    def suggestions(self, current, key='name'):
-        if key != 'name':
-            return []
-
-        # Graphite publihes the `/metrics/find` API endpoint to retrieve the
-        # availabe metrics path from a given value.
-        query = "*" if not current else current + "*"
-
-        if self.configuration.url[-1] != '/':
-            url = self.configuration.url + '/metrics/find'
-        else:
-            url = self.configuration.url + 'metrics/find'
-
-        params = {'query': query}
-
-        response = self._safe_request(url, params)
-        if not response:
-            return []
-
-        return [path['text'] for path in response]
-
     def datapoints(self, query, maxdatapoints=None):
         # Graphite publishes the endpoint `/render` to retrieve
         # datapoins from one or mulitple targets, we make sure that

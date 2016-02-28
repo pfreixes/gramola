@@ -174,34 +174,6 @@ class DataSource(object):
         """ Build a datasource using the config_params given """
         return cls(cls.DATA_SOURCE_CONFIGURATION_CLS(**config_params))
 
-    def suggestions(self, current, key='name'):
-        """
-        Function used to get a list of suggested values by the data source to
-        complete the `current` value.
-
-        Key by default looks at the `name` query param and is called when the user
-        runs the following command and gets an autocompletion :
-
-            $ gramola query datasource metric.path...
-
-        But if the data source implements other keys using a specific MetricQuery
-        derivated class the suggestion can come fromm an specific command option
-        that looks at this value, for example
-
-            $ gramola query datasource metric.path.value --since=
-
-        In the previous example the `key` param will get `since` as a value.
-
-        By default if it is not implemented it returns a empty list of values.
-
-        :param current: Current path value.
-        :type current: string.
-        :param key: The param over we have to make the suggestion, defaults as `name`
-        :type key: string.
-        :rtype: list.
-        """
-        return []
-
     def datapoints(self, query, maxdatapoints=None):
         """ This function is used to pick up a set of datapoints
         from the data source configured.
